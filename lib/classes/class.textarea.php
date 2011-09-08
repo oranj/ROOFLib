@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.text.php');
@@ -84,6 +84,6 @@ class FI_TextArea extends FI_Text {
 			$__WYSIWYG_PRINT = true;
 		}
 
-		return $script.'<textarea '.(($this->wysiwyg && $this->wysiwygInputClass)?('class="'.$this->wysiwygInputClass.'" '):'').'id="'.$this->name().'_w" cols="40" rows="4" '.($this->required()?'required ':'') .'name="'.$this->name().'">'.$this->value().'</textarea>';
+		return $script.'<textarea '.(($this->wysiwyg && $this->wysiwygInputClass)?('class="'.$this->wysiwygInputClass.'" '):'').'id="'.$this->name().'_w" cols="40" rows="4" '.(($this->required() && ($this->required_attr || $this->form->required_attr))?'required="required" ':'') .'name="'.$this->name().'">'.htmlentities($this->value()).'</textarea>'.$this->printDescription();
 	}
 }

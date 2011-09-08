@@ -1,15 +1,22 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 $FORM_DEBUG = false;
+
+if (! function_exists('dump')) {
+	function dump($var, $return = false) {
+		$str = "<pre>".htmlentities(print_r($var, true))."</pre>";
+		if ($return) { return $str; } else { echo $str; }
+	}
+}
 
 $FORMITEMS = Array(
 	'Bool' => 'Allows the user to select a true / false value',
@@ -20,6 +27,7 @@ $FORMITEMS = Array(
 	'Email' => 'Enforces that the input text is a valid email address',
 	'File' => 'Allows the user to upload one or more files. Multiple files require javascript.',
 	'FormItem' => 'The abstract class for all form items.',
+	'Flip' => 'Allows the user to scroll through a LOV.',
 	'Group' => 'Groups form items',
 	'Hidden' => 'A hidden input',
 	'HTML' => 'Allows customizable text between the form items',
@@ -45,6 +53,7 @@ foreach ($FORMITEMS as $filename => $description) {
 
 include_once (dirname(__FILE__).'/class.phpmailer.php');
 include_once (dirname(__FILE__).'/class.DatabaseForm.php');
+include_once (dirname(__FILE__).'/../../config.php');
 
 
 if (! isset($_SESSION)) {
@@ -86,21 +95,40 @@ class Form {
  * @param String $name The unique of the Form - the name of the table if databasing
  */
 	public function __construct($name) {
-
+	
 		$this->name = preg_replace('/\s+/', '_', strtolower($name));
 		$this->items = Array();
 		$this->validators = Array();
-		$this->attributes = Array('method' => 'post', 'action'=>$_SERVER['REQUEST_URI'], 'id'=>'f_'.$this->name);
+		$this->attributes = Array('method' => 'post', 'action'=>$_SERVER['REQUEST_URI'], 'id'=>$this->cfg('prefix_form').$this->name);
 		$this->successMessage = "";
 		$this->welcomeMessage = "";
-		$this->noteMessage = "Required Fields <span>*</span>";
+		$this->noteMessage = $this->cfg('text_note');
+		$this->required_str = $this->cfg('text_required');
+		$this->required_attr = $this->cfg('attr_required');
+		$this->message_inline = false;
 		$this->status_messages_printed = false;
 		$this->setButtons(self::BU('Submit', 'submit'));
+		$this->resources = $this->cfg('dir_resources');
+
+		$this->js_files = Array();
+		$this->js_dir = dirname(__FILE__).'/../js/';
+
+		$this->icos = Array(
+			'error'		=> $this->cfg('ico_error'),
+			'warning' 	=> $this->cfg('ico_warning'),
+			'help'		=> $this->cfg('ico_help'),
+			'close'		=> $this->cfg('ico_close'),
+		);
+
+		$this->cache = $this->cfg('cache');
+		$this->cacheDir = dirname(__FILE__).'/../cache/';
 
 $css = <<<CSS
 	.fldValue, .fldName { vertical-align:top; padding-bottom:3px; font:12px/1.6em Arial, sans-serif; color:#333;  border-top:1px solid #efefef; }
 	.fldName { padding-right:25px; color:#7A3D00; }
 	table { border-collapse: collapse; }
+	.css_fi_separator { font:15px/1.6em Arial, sans-serif; }
+	h1 { font:18px/1.6em Arial, sans-serif; margin:10px 0px 0px; font-weight:bold; }
 	a { color:#17345c; }
 CSS;
 
@@ -110,6 +138,15 @@ CSS;
 		$this->__action = NULL;
 		$this->__sessioned = NULL;
 
+	}
+	
+	public function cfg($key) {
+		global $ROOFL_Config;
+		if (isset($ROOFL_Config[$key])) {
+			return $ROOFL_Config[$key];
+		} else {
+			return NULL;
+		}
 	}
 
 
@@ -122,6 +159,13 @@ CSS;
 		$this->__useFormat = $format;
 	}
 
+	public function getIco($key, $alt = '', $title = '') {
+		if ($this->icos[$key]) {
+			return '<img border="0px" src="'.$this->cfg('web_catalog').$this->resources.$this->icos[$key].'" alt="'.htmlentities($alt).'" title="'.htmlentities($title).'" />';
+		} else {
+			return '';
+		}
+	}
 
 /**
  * Sets the CSS in the Email
@@ -185,6 +229,23 @@ CSS;
 		);
 	}
 
+/**
+* Struct for sending an error message('warning' or 'error') to the parent form on validation
+*
+* @param String $type Your options are 'warning' or 'error' => indicating what class of message to belong to
+* @param String $message The message to display
+* @param FormItem $formItem the FormItem to attach the error to (NULL attaches it to the form)
+*/
+	static public function ME($type, $message, &$formItem = NULL, $inline = '') {
+		return (object) Array(
+			'type'		=> $type,
+			'message' 	=> $message,
+			'formItem'	=> $formItem,
+			'inline' 	=> ($inline?$inline:$message),
+			'is_fme'	=> true,
+		);
+	}
+
 
 /**
  * Sets the buttons of the form. Accepts any number of Form::BU items.
@@ -198,24 +259,28 @@ CSS;
 				echo 'If you are using setButtons, construct them using Form::BU($value, $label, [$is_img = false]);';
 				exit();
 			}
-			switch ($bu->type) {
-				case 'submit':
-					$this->buttonHTML .= $this->_getButtonHTML($bu->label, $bu->value);
-					break;
-				case 'image':
-					$this->buttonHTML .= $this->_getButtonImageHTML($bu->label, $bu->value);
-					break;
-				case 'link':
-					$this->buttonHTML .= $this->_getButtonLinkHTML($bu->label, $bu->value);
-					break;
-				case 'script':
-					$this->buttonHTML .= $this->_getButtonScriptHTML($bu->label, $bu->value);
-				default:
-			}
+			$this->buttonHTML .= $this->getButtonHTML($bu);
 			$this->postActions[$bu->value] = $bu;
 		}
 	}
 
+	private function getButtonHTML($bu) {
+		switch ($bu->type) {
+			case 'submit':
+				$html = $this->_getButtonHTML($bu->label, $bu->value);
+				break;
+			case 'image':
+				$html = $this->_getButtonImageHTML($bu->label, $bu->value);
+				break;
+			case 'link':
+				$html = $this->_getButtonLinkHTML($bu->label, $bu->value);
+				break;
+			case 'script':
+				$html = $this->_getButtonScriptHTML($bu->label, $bu->value);
+			default:
+		}
+		return $html;
+	}
 
 
 /**
@@ -250,8 +315,14 @@ CSS;
 					$action = $_GET[$name];
 					break;
 				}
+			} else if ($bu->type == 'image') {
+				$name = $this->_getButtonPrefix().$bu->value.'_x';
+				if (isset($_POST[$name])) {
+					$_label = $bu->label;
+					$action = $bu->value;
+					break;
+				}
 			} else {
-
 				$name = $this->_getButtonPrefix().$bu->value;
 				if (isset($_POST[$name])) {
 					$_label = $bu->label;
@@ -371,20 +442,22 @@ CSS;
 		$value = join('_', $components[0]);
 		$name = $this->_getButtonPrefix().$value;
 
-		list($base, $param_str) = split('\?', $url);
-		$params = split('&', $param_str);
-		$out_params = Array();
-		foreach ($params as $param) {
-			list($_k, $_v) = split('=', $param);
-			$out_params[$_k] = $_v;
-		}
-		$out_params [$name]= $value;
-		$params = Array();
-		foreach ($out_params as $_n => $_v) {
-			$params[] = $_n.(($_v)?('='.$_v):'');
-		}
+		if (preg_match('/\?/', $url)) {
+			list($base, $param_str) = split('\?', $url);
+			$params = split('&', $param_str);
+			$out_params = Array();
+			foreach ($params as $param) {
+				list($_k, $_v) = split('=', $param);
+				$out_params[$_k] = $_v;
+			}
+			$out_params [$name]= $value;
+			$params = Array();
+			foreach ($out_params as $_n => $_v) {
+				$params[] = $_n.(($_v)?('='.$_v):'');
+			}
 
-		$url = $base.'?'.join('&', $params);
+			$url = $base.'?'.join('&', $params);
+		}
 
 		return '<input type="button" name="'.$name.'" value="'.$label.'" onclick="window.location = \''.$url.'\';" />';
 	}
@@ -446,6 +519,14 @@ CSS;
 		}
 	}
 
+	private function printTag() {
+		$attributes = Array();
+		foreach ($this->attributes as $key => $value) {
+			$attributes []= $key.'="'.$value.'"';
+		}
+		$html = '<form '.join(' ', $attributes).'>';
+		return $html;
+	}
 
 /**
  * Prints the status message to the screen
@@ -456,19 +537,188 @@ CSS;
 		$html = '';
 		if(! $this->status_messages_printed) {
 			if ($this->errors) {
-				$html .= '<div class="error">The following error'.((sizeof($this->errors) > 1)?'s':'').' occurred: <ul><li>'.join('</li><li>', $this->errors).'</li></ul></div>';
+
+				foreach ($this->errors as $me) {
+					if (! ($me->formItem->message_inline || $this->message_inline)) {
+						$html .= '<li>'.$me->message.'</li>';
+					}
+				}
+				if ($html) {
+					$html .= '<div class="error">Please correct the following error'.((sizeof($this->errors) > 1)?'s':'').': <ul>'.$html.'</ul></div>';
+				}
 			}
 			if ($this->warnings) {
-				$html .= '<div class="warning">Notice: <ul><li>'.join('</li><li>', $this->warnings).'</li></ul></div>';
-			}
-			if ($this->successes) {
-				$html .= '<div class="success"><ul><li>'.join('</li><li>', $this->successes).'</li></ul></div>';
+
+				$html = '';
+				foreach ($this->warnings as $me) {
+					if (! ($me->formItem->message_inline || $this->message_inline)) {
+						$html .= '<li>'.$me->message.'</li>';
+					}
+				}
+
+				if ($html) {
+					$html = '<div class="warning">Notice: <ul>'.$html.'</ul></div>';
+				}
 			}
 			$this->status_messages_printed = true;
 		}
 		return $html;
 	}
 
+	private function parseFormat($format) {
+		preg_match_all('/\<(\/?)\{(.*?)\}(\/?)\>/', $format, $matches, PREG_OFFSET_CAPTURE);
+
+		$inline = Array();
+
+		$start = 0;
+		$length = $matches[0][0][1];
+		$index = 0;
+		while ($index < sizeof($matches[0])) {
+			$tag_desc = $matches[0][$index];
+			if ($start != $tag_desc[1]) {
+				$length = $tag_desc[1] - $start;
+				$inline []= substr($format, $start, $length);
+			} else {
+				$length = strlen($tag_desc[0]);
+				preg_match_all('/(.*?)(\[(.*?)\])/', $matches[2][$index][0], $data);
+				if (! sizeof($data[1])) {
+					$name = $matches[2][$index][0];
+				} else {
+					$name = $data[1][0];
+				}
+				$_attrs = $data[3];
+				$attrs = Array();
+				foreach ($_attrs as $str) {
+					$s = split('=', $str);
+					if (sizeof($s) > 1) {
+						$attrs[$s[0]] = $s[1];
+					} else {
+						$attrs[$s[0]] = $s[0];
+					}
+				}
+
+				$type = $matches[3][$index][0]?'single':($matches[1][$index][0]?'close':'open');
+				$inline []= (object)Array('text'=>$text, 'name'=>$name, 'attributes'=>$attrs, 'type'=>$type);
+				$index++;
+			}
+			$start += $length;
+		}
+		if ($start < strlen($format)) {
+			$inline []= substr($format, $start);
+		}
+
+		$root = (object)Array('type'=>'root', 'children'=>Array(), 'attributes'=>Array());
+		$stack = Array(&$root);
+		foreach ($inline as $value) {
+			$parent = $stack[sizeof($stack) - 1];
+			if (! is_object($value)) {
+				$parent->children []= (object)Array('type'=>'text', 'value'=>$value);
+			} else {
+				switch($value->type) {
+					case 'open':
+						$node = (object)Array('type'=>'node',  'attributes'=>$value->attributes, 'tag'=>$value->name, 'children'=>Array());
+						$parent->children []= &$node;
+						$stack []= &$node;
+						break;
+					case 'close':
+						array_pop($stack);
+						break;
+					case 'single':
+						$parent->children []= (object)Array('type'=>'node',  'attributes'=>$value->attributes, 'tag'=>$value->name, 'children'=>Array());
+						break;
+				}
+			}
+		}
+
+		return $root;
+	}
+
+
+
+	private function format_r($node, $email) {
+		switch ($node->type) {
+			case 'text':
+				return $node->value;
+				break;
+			case 'node':
+			case 'root':
+				$text = '';
+
+				if ($node->tag == 'form') {
+					foreach ($node->attributes as $attribute => $value) {
+						switch($attribute) {
+							case 'bu':
+								$text .= $this->getButtonHTML($this->postActions[$value]);
+								break;
+							case 'nosuccess':
+								if (isset($_GET['success'])) {
+									return '';
+								}
+								break;
+							case 'messages':
+								if (! $email) {
+									switch($value) {
+										case 'welcome':
+											if (! isset($_GET['success'])) {
+												$text .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
+											}
+											break;
+										case 'note':
+											if (! isset($_GET['success'])) {
+												$text .= '<div class="noteMessage">'.$this->noteMessage.'</div>';
+											}
+											break;
+										case 'status':
+											$text .= $this->print_status_messages();
+											break;
+										case 'success':
+											if (isset($_GET['success'])) {
+												$text .= $this->onSuccess();
+											}
+										default:
+											if (! isset($_GET['success'])) {
+												$text .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
+											} else {
+												$text .= $this->onSuccess();
+											}
+											$text .= $this->print_status_messages();
+											if (! isset($_GET['success'])) {
+												$text .= ($this->noteMessage)?('<div class="noteMessage">'.$this->noteMessage.'</div>'):'';
+											}
+											break;
+									}
+								}
+								break;
+						}
+					}
+				} else if ($node->type != 'root') {
+					$fi = $this;
+					$path = preg_split('/::/', $node->tag);
+					for ($i = 0; $i < sizeof($path); $i++) {
+						if ($next_item = $fi->getItem($path[$i])) {
+							$fi = $next_item;
+						} else {
+							die('No item with name "'.$path[$i].'" in '.($i == 0?('form::'.$this->name):('group::'.$path[$i-1].'"')));
+						}
+					}
+					foreach ($node->attributes as $key => $value) {
+						switch ($key) {
+
+						}
+					}
+					$text .= $fi->printForm($email);
+
+				}
+				foreach ($node->children as $child) {
+					$text .= $this->format_r($child, $email);
+				}
+
+
+				return $text;
+				break;
+		}
+		return '';
+	}
 
 /**
  * Formats the form data given a formatted string
@@ -477,24 +727,42 @@ CSS;
  *
  * @return String the formatted result
  */
-	private function format($format) {
+	public function format($format, $email = true) {
 
-		preg_match_all('/\<\[(.*?)\]\>/', $format, $matches, PREG_OFFSET_CAPTURE);
+		if ($this->cache) {
+			$key = md5($format);
+			$filename = ".roofl_".$key;
+			$path = $this->cacheDir.$filename;
+			$tree = $this->parseFormat($format);
 
-		foreach ($matches[0] as $key => $value) {
-			$pre = substr($format, 0, $value[1]);
-			$name = $matches[1][$key][0];
-			$path = preg_split('/::/', $name);
-			$fi = $this;
-			for ($i = 0; $i < sizeof($path); $i++) {
-				if ($next_item = $fi->getItem($path[$i])) {
-					$fi = $next_item;
-				} else {
-					die('No item with name "'.$path[$i].'" in '.($i == 0?('form::'.$this->name):('group::'.$path[$i-1].'"')));
+			if (file_exists($path)) {
+				$start = microtime(true);
+				$tree = json_decode(file_get_contents($path));
+				$end = microtime(true);
+
+				echo "Decode time: ".($end - $start)." seconds. <br/>";
+
+			} else {
+				$tree = $this->parseFormat($format);
+				if (is_dir($this->cacheDir)) {
+					$handler = fopen($path, "w");
+					fwrite($handler, json_encode($tree));
+					fclose($handler);
 				}
 			}
+		} else {
+			$tree = $this->parseFormat($format);
+		}
 
-			$format = preg_replace('/\<\['.$matches[1][$key][0].'\]\>/', '<span class="fi">'.$fi->printEmail()."</span>", $format);
+		$start = microtime(true);
+		$format = $this->format_r($tree, $email);
+		$end = microtime(true);
+
+		echo "Format time: " . ($end - $start) ." seconds: ";
+//		exit();
+
+		if (! $email) {
+			$format = $this->printTag().$format.'</form>';
 		}
 		return $format;
 	}
@@ -516,6 +784,7 @@ CSS;
 		// if it's required, automatically add the 'required' assertion
 		$this->attributes = array_merge($this->attributes, $formItem->formAttributes());
 		$this->items[$formItem->name()] = $formItem;
+		$formItem->setForm($this);
 	}
 
 
@@ -558,9 +827,18 @@ CSS;
 
 			$item->check($errors, $warnings, $continue);
 		}
+
 		$this->errors = $errors;
 		$this->warnings = $warnings;
 		$this->successes = $successes;
+
+		foreach ($this->errors as $me) {
+			$me->formItem->errors []= $me;
+		}
+
+		foreach ($this->warnings as $me) {
+			$me->formItem->warnings []= $me;
+		}
 
 		if ($this->errors) {
 			foreach ($this->items as $name => $item) {
@@ -599,7 +877,7 @@ CSS;
 
 		$html = '';
 
-		if (isset($_GET['thankyou'])) {
+		if (isset($_GET['success'])) {
 			return $this->onSuccess();
 		} else {
 			$html .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
@@ -608,11 +886,7 @@ CSS;
 
 			$html .= ($this->noteMessage)?('<div class="noteMessage">'.$this->noteMessage.'</div>'):'';
 
-
-			foreach ($this->attributes as $key => $value) {
-				$attributes []= $key.'="'.$value.'"';
-			}
-			$html .= '<form '.join(' ', $attributes).'>';
+			$html .= $this->printTag();
 
 			$html .= '<'.(($nameAbove)?'div':'table').' class="form">';
 			foreach ($this->items as $name => $item) {
@@ -620,10 +894,20 @@ CSS;
 			}
 			$html .= ((! $nameAbove)?('<tr class="fbu"><td></td><td>'.$this->buttonHTML.'</td></tr></table>'):('<div class="fbu">'.$this->buttonHTML.'</div></div>')).'</form>';
 
+			if ($this->js_files) {
+				$js = '<script type="text/javascript">';
+				$this->js_files = array_unique($this->js_files);
+				foreach ($this->js_files as $js_file) {
+					$js .= file_get_contents($this->js_dir.$js_file)."\n";
+				}
+				$js .= '</script>';
+				$html = $js.$html;
+			}
+
 		}
+
 		return $html;
 	}
-
 
 /**
  * Prints the form specifically for Email purposes.
@@ -632,9 +916,6 @@ CSS;
  */
 	public function printEmail() {
 		$html = '';
-		if ($this->mailCSS) {
-			$html .= '<style>'.$this->mailCSS.'</style>';
-		}
 		if ($this->__useFormat) {
 			$html = $this->format($this->__useFormat);
 		} else {
@@ -645,6 +926,9 @@ CSS;
 				}
 			}
 			$html .= "</table>";
+		}
+		if ($this->mailCSS) {
+			$html .= '<style>'.$this->mailCSS.'</style>';
 		}
 		return $html;
 	}
@@ -678,7 +962,11 @@ CSS;
 
 		$mail->Subject = $subject;
 		$mail->Body = $html;
-		$mail->AltBody = strip_tags($html);
+
+		$nostyle = preg_replace('/<style(.*)\/style>/s', '', $html);
+		$spaced = preg_replace('/(class="fldName".*?\>)(.*?)(<\/)/', '$1$2   $3', $nostyle); // add spacing for the alt body.
+
+		$mail->AltBody = strip_tags($spaced);
 
 		$mail->From = $fromAddress; // the email field of the form
 		$mail->FromName = $fromName; // the name field of the form

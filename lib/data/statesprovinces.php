@@ -42,6 +42,8 @@ $STATESPROVINCES = Array(
 	'NY' => 'New York',
 	'NC' => 'North Carolina',
 	'ND' => 'North Dakota',
+	'NT' => 'Northwest Territories',
+	'NU' => 'Nunavut',
 	'OH' => 'Ohio',
 	'OK' => 'Oklahoma',
 	'ON' => 'Ontario',
@@ -61,5 +63,6 @@ $STATESPROVINCES = Array(
 	'WA' => 'Washington',
 	'WV' => 'West Virginia',
 	'WI' => 'Wisconsin',
-	'WY' => 'Wyoming'
+	'WY' => 'Wyoming',
+	'YT' => 'Yukon', 
 );

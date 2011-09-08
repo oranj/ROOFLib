@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 include_once('class.formitem.php');
@@ -54,7 +54,7 @@ class FI_Separator extends FormItem {
 		if ($email ) {
 			$html .= '<strong>'.$this->label.'</strong>';
 		} else {
-			$html .= '<div class="sepLabel">'.$this->label.'</div>';
+			$html .= '<div class="sepLabel">'.$this->label.$this->printHelp().'</div>';
 		}
 
 		$html .= (($nameAbove)?'</div>':'</td></tr>')."\n";

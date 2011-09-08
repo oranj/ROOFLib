@@ -42,10 +42,10 @@ if (isset($_REQUEST['class'])) {
 			$_SESSION['insert_no'] ++;
 			$insert_form = new Form('insert_'.$_SESSION['insert_No']);
 			$description = FormItem::describe($class);
-
 			foreach ($description as $key => $data) {
 				$c = '';
-				if ($key == 'required' && $_REQUEST['bool'] == 'checked') {
+
+				if ($key == 'required' && $_REQUEST['bool']) {
 					$data['default'] = 'true';
 					$c = ' attr_enabled';
 				}
@@ -180,7 +180,7 @@ function insertRow() {
 }
 
 function getRow(_class, _name, _label) {
-	$.get('formbuilder.php', {'code':true, 'bool':$('[name="required"]').attr('checked'), 'class':_class, 'description':$('#css_description input').attr('value'), 'name':_name, 'label':_label}, codeSuccess);
+	$.get('formbuilder.php', {'code':true, 'bool':$('[name="required"]:checked').attr('value'), 'class':_class, 'description':$('#css_description input').attr('value'), 'name':_name, 'label':_label}, codeSuccess);
 }
 
 function rowSuccess(data) {
@@ -288,10 +288,10 @@ function check_password($fi_password, &$errors, &$warnings) {
 	<div>&nbsp;</div>
 	<div>if (($action = $form-><a href="javascript:void(0);" class="hoverhide">action()<span class="hoverhidden">Indicates that the form was submitted. It returns the value of the button which was clicked</span></a>) && $form-><a href="javascript:void(0);" class="hoverhide">validate()<span class="hoverhidden">Checks that all of the fields have been validated. If it does not pass validation, the errors are </span></a>) { </div>
 	<div>&nbsp;&nbsp;&nbsp;&nbsp;$value = $form-><a href="javascript:void(0);" class="hoverhide">value();<span class="hoverhidden">Retrieves the value of the form as an associative array tree</span></a></div>
-	<div>&nbsp;&nbsp;&nbsp;&nbsp;$form-><a href="javascript:void(0);" class="hoverhide">storeEntry<span class="hoverhidden">Stores the form data to a database. For simple forms, use this option. Otherwise, for complex forms, manage the database manually.</span></a>(false, "<span contenteditable="true">localhost</span>", "<span contenteditable="true">dbuser</span>", "<span contenteditable="true">dbpass</span>", "<span contenteditable="true">dbname</span>");</div>
+	<div>&nbsp;&nbsp;&nbsp;&nbsp;$form-><a href="javascript:void(0);" class="hoverhide">storeEntry();<span class="hoverhidden">Stores the form data to a database. For simple forms, use this option. Otherwise, for complex forms, manage the database manually. <br/> Ensure you have a connection and selected database before using this function by using <code>mysql_connect</code> and <code>mysql_select_db</code></span></a></div>
 	<div>&nbsp;&nbsp;&nbsp;&nbsp;$form-><a href="javascript:void(0);" class="hoverhide">sendEmail<span class="hoverhidden">Sends the form as a message to the specified user(s). Be sure to use associative arrays for to, cc, or bcc lists</span></a>("<span contenteditable="true">Subject</span>", <span contenteditable="true">$value['email']</span>, <span contenteditable="true">$value['name']</span>, Array('<span contenteditable="true">John Smith</span>' => '<span contenteditable="true">johnsmith@example.com</span>'));</div>
 
-	<div>&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" class="hoverhide">header('Location: ?thankyou');<span class="hoverhidden">The token <code>?thankyou</code> Tells the form that the submission was approved and no longer prints the form, but rather the success message</span></a></div>
+	<div>&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" class="hoverhide">header('Location: ?success');<span class="hoverhidden">The token <code>?thankyou</code> Tells the form that the submission was approved and no longer prints the form, but rather the success message</span></a></div>
 	<div>} </div>
 	<div>&nbsp;</div>
 	<div>?&gt;</div>

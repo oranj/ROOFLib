@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 abstract class FormItem {
@@ -19,6 +19,7 @@ abstract class FormItem {
 	protected $validators;
 	protected $attributes;
 
+	protected $form;
 
 /**
  * Creates a new FormItem
@@ -37,23 +38,40 @@ abstract class FormItem {
 			'email'			=> true,
 			'pre'=>'',
 			'post'=>'',
-			'required_str' 	=> '<span>*</span>',
+			'required_str' 	=> '',
+			'desc_in_label' => false,
+			'required_attr' => false,
+			'message_inline'=> true, // Options are Inline or Top
+			'help'			=> NULL,
 		);
+
+		$this->errors 		= Array();
+		$this->warnings		= Array();
+
 
 		$this->name 			= $name;
 		$this->label 			= $label;
 		$this->formAttributes 	= Array();
 		$this->attributes		= Array();
 
-		$this->attr('id', 'css_'.strtolower($this->name()));
-		$this->attr('class', 'css_fi_'.strtolower($this->getType()));
-
 		$this->merge($options, $defaultValues);
 
-		$this->attr('class', ($this->required)?'required':'not_required');
+
+		$this->attr('id', 		$this->cfg('prefix_id').strtolower($this->name()));
+		$this->attr('class', 	$this->cfg('prefix_class').strtolower($this->getType()));
+		$this->attr('class',	($this->required)?$this->cfg('class_required'):$this->cfg('class_not_required'));
 
 		if (! is_array($this->validators)) {
 			$this->validators = Array($this->validators);
+		}
+	}
+	
+	public function cfg($key) {
+		global $ROOFL_Config;
+		if (isset($ROOFL_Config[$key])) {
+			return $ROOFL_Config[$key];
+		} else {
+			return NULL;
 		}
 	}
 
@@ -83,10 +101,46 @@ abstract class FormItem {
 			'post'=>self::DE('text', 'Text following the input element.', '\'\''),
 			'required_str'=>self::DE('text', 'Text following the field name if the field is required.', '\'\''),
 			'email'=>self::DE('bool', 'Include the field in the email', 'true'),
+			'desc_in_label'=>self::DE('bool', 'Print the description underneath the label', 'false'),
+			'required_attr'=>self::DE('bool', 'Adds the "required" attribute the the input', 'true'),
 		);
 		return $description;
 	}
 
+	public function printHelp() {
+		if ($this->help) {
+			global $HELP_SCRIPT_PRINTED;
+			$js = '';
+			if (! $HELP_SCRIPT_PRINTED) {
+				$js .= '<script type="text/javascript">
+
+function popUp(_title, _text) {
+	if (! $("#fi_popUp").length) {
+		$("body").append($("<div id=\'fi_popUp\'><span class=\'fi_icon\'>'.addslashes($this->form->getIco('help', 'Help')).'</span><a class=\'fi_close\' href=\'javascript:popDown()\'>'.addslashes($this->form->getIco('close', 'Close')).'</a><div class=\'header\'></div><div class=\'message\'></div>"));
+	}
+	if (! $("#fi_popUpModal").length) {
+		$("body").append($("<div id=\'fi_popUpModal\' onclick=\'popDown()\'></div>"));
+	}
+
+	$("#fi_popUp").css("display", "block");
+	$("#fi_popUpModal").css("display", "block");
+	$("#fi_popUp .header").text(_title);
+	$("#fi_popUp .message").html("").append(_text);
+}
+
+function popDown() {
+	$("#fi_popUp").css("display", "none");
+	$("#fi_popUpModal").css("display", "none");
+}
+
+				</script>
+
+				';
+			}
+			$ico = $js.$this->form->getIco('help', 'Help', 'View help information');
+			return ' <a href="javascript:popUp(\''.htmlentities($this->label).'\', \''.addslashes($this->help).'\');">'.$ico.'</a>';
+		}
+	}
 
 /**
  * Struct for ease of use in the FormItem::description() function
@@ -117,6 +171,10 @@ abstract class FormItem {
 		}
 	}
 
+
+	public function setForm(&$form) {
+		$this->form = $form;
+	}
 
 /**
  * Merges the default values from the derived classes to the base class
@@ -173,7 +231,7 @@ abstract class FormItem {
  */
 	public function printDescription() {
 		if ($this->description) {
-			return '<div class="descr">'.$this->description.'</div>';
+			return '<div class="'.$this->cfg('class_description').'">'.$this->description.'</div>';
 		}
 		return '';
 	}
@@ -213,6 +271,40 @@ abstract class FormItem {
 		return "FormItem";
 	}
 
+ /**
+ * Prints the status messages after validation
+ *
+ * @return String The Status Messages
+ */
+	public function printMessages() {
+	 	$html = '';
+		if ($this->errors) {
+			$html .= '<div class="'.$this->cfg('class_error').' '.$this->cfg('class_inline').'">';
+			$first = true;
+			foreach ($this->errors as $me) {
+				if (! $first) {
+					$html .= '<br/>';
+				}
+				$html .= $this->form->getIco('error', 'Error', $me->inline).$me->inline;
+				$first = false;
+			}
+			$html .= '</div>';
+		}
+		if ($this->warnings) {
+			$html .= '<div class="'.$this->cfg('class_warning').' '.$this->cfg('class_inline').'">';
+			$first = true;
+			foreach ($this->warnings as $me) {
+				if (! $first) {
+					$html .= '<br/>';
+				}
+				$html .= $this->form->getIco('warning', 'Warning', $me->inline).$me->inline;
+				$first = false;
+			}
+			$html .= '</div>';
+		}
+		return $html;
+	}
+
 
 /**
  * Add files to the form for email purposes.
@@ -231,7 +323,7 @@ abstract class FormItem {
  */
 	public function printPost() {
 		if ($this->post) {
-			return '<span class="fi_post">'.$this->post.'</span>';
+			return '<span class="'.$this->cfg('class_pre').'">'.$this->post.'</span>';
 		}
 		return '';
 	}
@@ -244,7 +336,7 @@ abstract class FormItem {
  */
 	public function printPre() {
 		if ($this->pre) {
-			return '<span class="fi_pre">'.$this->pre.'</span>';
+			return '<span class="'.$this->cfg('class_pre').'">'.$this->pre.'</span>';
 		}
 		return '';
 	}
@@ -266,7 +358,7 @@ abstract class FormItem {
  * @return String the label
  */
 	public function label() {
-		return $this->label;
+		return $this->label.($this->desc_in_label?$this->printDescription():'');
 	}
 
 
@@ -327,15 +419,17 @@ abstract class FormItem {
 	public function printRow($email = false, $nameAbove = false) {
 		if ($email) {
 			if ($nameAbove) {
-				return '<div class="fldName">'.($this->hide_hide?'':$this->label()).'</div><div class="fldValue">'.$this->printEmail().'</div>'."\n";
+				return '<div class="'.$this->cfg('class_fieldname').'">'.($this->hide_label?'':$this->label()).'</div><div class="'.$this->cfg('class_fieldvalue').'">'.$this->printEmail().'</div>'."\n";
 			} else {
-				return '<tr><td class="fldName">'.$this->label().'</td><td class="fldValue">'.$this->printEmail().'</td></tr>'."\n";
+				return '<tr><td class="'.$this->cfg('class_fieldname').'">'.$this->label().'</td><td class="'.$this->cfg('class_fieldvalue').'">'.$this->printEmail().'</td></tr>'."\n";
 			}
 		} else {
+			$messages = ($this->message_inline || $this->form->message_inline)?$this->printMessages():'';
+			if ($messages) { $messages = (($nameAbove?'<div ':'<td ').' class="'.$this->cfg('class_fieldmessages').'">'.$messages.'</'.($nameAbove?'div>':'td>')); }
 			if ($nameAbove) {
-				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="fldName">'.$this->label().$this->printRequired().'</div>')).'<div class="fldValue">'.$this->printForm().'</div></div>';
+				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="'.$this->cfg('class_fieldname').'">'.$this->label().$this->printRequired().$this->printHelp().'</div>')).'<div class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</div>'.$messages.'</div>';
 			} else {
-				return '<tr '.$this->attrString().'><td class="fldName">'.($this->hide_label?'':($this->label().$this->printRequired().'</div>')).'</td><td class="fldValue">'.$this->printForm().'</td></tr>';
+				return '<tr '.$this->attrString().'><td class="'.$this->cfg('class_fieldname').'">'.($this->hide_label?'':($this->label().$this->printRequired().$this->printHelp().'</div>')).'</td><td class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</td>'.$messages.'</tr>';
 			}
 		}
 	}
@@ -376,7 +470,7 @@ abstract class FormItem {
 	public function check(&$errors, &$warnings, &$continue) {
 		$value = trim($this->value());
 		if ($this->required && ! $value && $value !== '0') {
-			$errors []= 'Please enter a value for field: <em>'.$this->label().'</em>';
+			$errors []= Form::ME('error', sprintf($this->cfg('text_error_head'), $this->label()), $this, sprintf($this->cfg('text_error_inline'), $this->label()));
 		}
 		$this->checkValidators($errors, $warnings, $continue);
 	}
@@ -390,11 +484,19 @@ abstract class FormItem {
  * @param Bool $continue Tells the parent to not break
  */
 	public function checkValidators(&$errors, &$warnings, &$continue) {
+		$_errors = Array();
+		$_warnings = Array();
 		foreach ($this->validators as $validator) {
 			if (! $continue) {
 				break;
 			}
-			$continue = $validator($this, $errors, $warnings);
+			$continue = $validator($this, $_errors, $_warnings);
+		}
+		foreach ($_errors as $_error) {
+			$errors []= Form::ME('error', $_error, $this);
+		}
+		foreach ($_warnings as $_warning) {
+			$warnings []= Form::ME('warning', $_warning, $this);
 		}
 	}
 
@@ -406,7 +508,11 @@ abstract class FormItem {
  */
 	public function printRequired() {
 		if ($this->required()) {
-			return ' '.$this->required_str;
+			if ($this->required_str) {
+				return ' '.$this->required_str;
+			} else {
+				return ' '.$this->form->required_str;
+			}
 		} else {
 			return '';
 		}

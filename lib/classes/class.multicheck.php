@@ -1,14 +1,13 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
-?><?php
 
 require_once('class.checkbox.php');
 

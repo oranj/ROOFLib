@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.formitem.php');
@@ -34,7 +34,8 @@ class FI_Group extends FormItem {
 		$defaultValues = Array(
 			'field_tag' => 'fieldset',
 			'label_tag' => 'legend',
-			'forceChildNameAbove' => false
+			'forceChildNameAbove' => false,
+			'form_class' => '',
 		);
 
 
@@ -190,7 +191,7 @@ class FI_Group extends FormItem {
 		$html = '';
 		if (! $email) {
 			$html .= (($nameAbove)?('<div '.$this->attrString().'>'):('<tr '.$this->attrString().'><td colspan="2">'))."\n";
-			$html .= '<'.$this->field_tag.'>'."\n";
+			$html .= '<'.$this->field_tag.' class="'.$this->form_class.'">'."\n";
 
 			if (! $this->hide_label && $this->label !== NULL) {
 				$html .= '<'.$this->label_tag.'>'.$this->label.'</'.$this->label_tag.'>'."\n";
@@ -208,10 +209,16 @@ class FI_Group extends FormItem {
 			$html .= (($nameAbove)?'<div>':'<tr><td colspan="2">').($this->hide_label?'':('<strong>'.$this->label.'</strong>'));
 			$html .= (($nameAbove)?'</div>':'</td></tr>')."\n";
 			foreach ($this->items as $item) {
-				$html .= $item->printRow($email, $nameAbove || $this->forceChildNameAbove)."\n";
+				if ($item->email) {
+					$html .= $item->printRow($email, $nameAbove || $this->forceChildNameAbove)."\n";
+				}
 			}
 			$html .= (($nameAbove)?'':'<tr><td colspan="2">&nbsp;</td></tr>')."\n";
 		}
 		return $html;
+	}
+
+	public function printForm($nameAbove) {
+		return $this->printRow(false, $nameAbove);
 	}
 }

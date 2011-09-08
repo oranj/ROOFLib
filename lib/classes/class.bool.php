@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.formitem.php');
@@ -25,10 +25,18 @@ class FI_Bool extends FormItem {
 		parent::__construct($name, $label, $options);
 
 		$defaultValues = Array(
-			'value'=>false
+			'mode'=>'radio', // Options are 'check', 'select', or 'radio'
+			'yes'=>'Yes',
+			'no'=>'No',
+			'dependent_strings' => Array(),
+			'dependents'=>Array(),
+			'antidependents'=>Array(),
 		);
 
 		$this->merge($options, $defaultValues);
+
+		$this->value($_POST[$this->name()]);
+
 	}
 
 
@@ -50,7 +58,6 @@ class FI_Bool extends FormItem {
  */
 	public static function description () {
 		return Array(
-			'value'=>self::DE('bool', 'The default true or false data', false)
 		);
 	}
 
@@ -63,10 +70,16 @@ class FI_Bool extends FormItem {
  */
 	public function value($input = NULL){
 		if ($input !== NULL) {
-			$this->value = (bool)$input;
+			$this->_value = (bool)$input;
 		} else {
-			return (bool)$this->value;
+			return (bool)$this->_value;
 		}
+	}
+
+
+	public function addToDB(&$dbForm) {
+		$string = ($this->value()?'X':'');
+		$dbForm->addItem($dbForm->dbName($this->label), $string);
 	}
 
 
@@ -78,12 +91,52 @@ class FI_Bool extends FormItem {
 	public function printForm() {
 		$html  = '';
 		$checked = $this->value();
-		$html = '<input type="checkbox" name="'.$this->name().'" value="true"'.($checked?' checked="checked"':'').' />';
+		switch($this->mode) {
+			case 'check':
+				$html = '<label>'.$this->printPre().'<input type="checkbox" name="'.$this->name().'" value="1"'.($checked?' checked="checked"':'').' />'.$this->printPost().'</label>';
+				break;
+			case 'select':
+				$nocheck = $checked?"":' selected="selected"';
+				$yescheck = $checked?' selected="selected"':'';
+				$html = '<select name="'.$this->name().'"><option value="0"'.$nocheck.'>'.$this->no.'</option><option value="1"'.$yescheck.'>'.$this->yes.'</option></select>';
+				break;
+			case 'radio':
+				$nocheck = $checked?"":' checked="checked"';
+				$yescheck = $checked?' checked="checked"':'';
+				$html = '<label><input type="radio" name="'.$this->name().'" value="0"'.$nocheck.'/>'.$this->no.'</label><label><input type="radio" name="'.$this->name().'" value="1"'.$yescheck.'/>'.$this->yes.'</label>';
+				break;
+		}
+		foreach ($this->dependents as $dependent) {
+			$this->makeDependent($dependent);
+		}
+		foreach ($this->antidependents as $antidependent) {
+			$this->makeDependent($antidependent, true);
+		}
 		$html .= $this->printDescription();
+		$html .= '<script type="text/javascript">$(function() { '.join("\n", $this->dependent_strings).'} );</script>';
 		return $html;
 	}
 
-
+	public function makeDependent($fi_id, $anti = false) {
+		$condition = 'false';
+		$bang = $anti?'!':'';
+		$target = 'null';
+			switch ($this->mode) {
+			case 'check':
+				$target = '$("[name='.$this->name().']")';
+				$condition =  $bang.'($("[name='.$this->name().']").attr("checked"))';
+				break;
+			case 'select':
+				$target = '$("[name='.$this->name().'] option")';
+				$condition =  $bang.'($("[name='.$this->name().']:selected").attr("value"))';
+				break;
+			case 'radio':
+				$target = '$("[name='.$this->name().']")';
+				$condition =  $bang.'($("[name='.$this->name().']:checked").attr("value") == 1)';
+				break;
+		}
+		$this->dependent_strings []= $target.'.change(function() { if('.$condition.') { $("#css_'.$fi_id.'").css("display", "table-row"); } else { $("#css_'.$fi_id.'").css("display", "none"); } }).change();';
+	}
 
 /**
  * Prints the FormItem for Email

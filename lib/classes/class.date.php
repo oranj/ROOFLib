@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.text.php');
@@ -47,9 +47,9 @@ class FI_Date extends FI_Text {
  */
 	public function printDate() {
 		if (is_numeric($this->_value) && (int)$this->_value > 0) {
-			return date('m/d/Y h:i a', (int)$this->_value);
+			return date('m/d/Y', (int)$this->_value);
 		} else {
-			return date('m/d/Y h:i a'); // show now by default;
+			return date('m/d/Y'); // show now by default;
 		}
 	}
 
@@ -107,12 +107,16 @@ class FI_Date extends FI_Text {
 		$html .= $this->printPre().'<input id="'.$this->name().'_in" type="text" name="'.$this->name().'"'.($this->required()?' required':'').' value="'.htmlentities($this->printDate($this->value())).'" />'.$this->printPost();
 
 		if ($this->description) {
-			$html .= '<div class="descr">'.$this->description.'</div>';
+			$html .= '<div class="'.$this->cfg('class_description').'">'.$this->description.'</div>';
 		}
 		if (! $using_ie6) {
-			$html .= '<script type="text/javascript">$("#'.$this->name().'_in").datetimepicker({ampm: true});</script>';
+			$html .= '<script type="text/javascript">$("#'.$this->name().'_in").datepicker();</script>';
 		}
 		return $html;
+	}
+
+	public function printEmail() {
+		return $this->printDate($this->value());
 	}
 
 }

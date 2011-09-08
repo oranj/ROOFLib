@@ -1,12 +1,13 @@
-<?php
+<?php 
+
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once(dirname(__FILE__).'/class.form.php');
@@ -74,34 +75,10 @@ class FI_Toggle extends FI_Group {
 * @return String The HTML string.
 */
 	public function printRow($email = false, $nameAbove = false) {
-		global $TOGGLE_JS_INCLUDED;
 		$html = '';
 		$js = '';
-		if (! $TOGGLE_JS_INCLUDED) {
-			$TOGGLE_JS_INCLUDED = true;
-			$js = '
+		$this->form->js_files []= 'toggle.js';
 
-var _ToggleControllers = Array();
-
-function ToggleController(id, options, start) {
-	this.id 		= id;
-	this.options 	= options;
-
-	this.switch = function(name) {
-		for (var i in this.options) {
-			$("#"+this.options[i]).find(":input").attr("disabled", "disabled");
-			$("#"+this.options[i]).find(".css_fi_matrix").attr("disabled", "disabled");
-		}
-		$("#"+name).find(":input").removeAttr("disabled");
-		$("#"+name).find(".css_fi_matrix").removeAttr("disabled");
-	}
-	_ToggleControllers[this.id] = this;
-	var value = $(\'[name=\'+id+\']:checked\').val();
-	_start = value+\'_tci\';
-	this.switch(_start);
-}
-';
-		}
 
 		$selected = is_null($this->selected)?'':($this->name().'_'.$this->selected);
 		$selected_id = $selected?reset($this->items[$selected]->attr('id')):'';
@@ -112,14 +89,14 @@ function ToggleController(id, options, start) {
 			$eid = $name.'_tci';
 			$rid = $name.'_tcr';
 			$options []= $eid;
-			$html .= '<tr '.$fi_item->attrString().'><td class="fldName"><input id="'.$rid.'" type="radio" onchange = "_ToggleControllers[\''.$this->name().'\'].switch(\''.$eid.'\');" name="'.$this->name().'" value="'.$name.'"'.($name == $selected?'checked="checked"':'').'/><label for="'.$rid.'">'.$fi_item->label().'</label></td>';
+			$html .= '<tr '.$fi_item->attrString().'><td class="'.$this->cfg('class_fieldname').'"><label><input id="'.$rid.'" type="radio" onchange = "_ToggleControllers[\''.$this->name().'\'].switch(\''.$eid.'\');" name="'.$this->name().'" value="'.$name.'"'.($name == $selected?'checked="checked"':'').'/>'.$fi_item->label().'</label></td>';
 			$fi_html = $fi_item->printRow(false, true);
-			$html .= '<td class="fldValue" id="'.$eid.'">'.$fi_html.'</td></tr>';
+			$html .= '<td class="'.$this->cfg('class_fieldvalue').'" id="'.$eid.'">'.$fi_html.'</td></tr>'."\n";
 			$first = (isset($first)?$first:$eid);
 		}
-		$js .= '$(function () { new ToggleController("'.$this->name().'", ["'.join('", "', $options).'"], "'.($selected?$selected_id:$first).'") });';
+		$js .= '$(new ToggleController("'.$this->name().'", ["'.join('", "', $options).'"], "'.($selected?$selected_id:$first).'"));';
 		$a = $this->attrString();
-		$html = '<script type="text/javascript">'.$js.'</script>'.($nameAbove?'<div '.$a.'>':'<tr '.$a.'><td colspan="2">').'<table>'.$html.'</table>'.($nameAbove?'</div>':'</td></tr>');
+		$html = '<script type="text/javascript">'.$js.'</script>'.($nameAbove?('<div '.$a.'>'):('<tr '.$a.'><td colspan="2">')).'<table>'.$html.'</table>'.($nameAbove?'</div>':'</td></tr>');
 		return $html;
 	}
 }

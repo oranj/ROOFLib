@@ -91,6 +91,11 @@ function generateString($length) {
 $length = 4;
 $validation_code = strtolower(generateString($length));
 
+$app_top = dirname(__FILE__).'/includes/application_top.php';
+if (file_exists($app_top)) {
+	include_once($app_top);
+}
+
 session_start();
 $_SESSION['security_code'] = $validation_code;
 

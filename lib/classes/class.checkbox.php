@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.formitem.php');
@@ -27,7 +27,8 @@ class FI_Checkbox extends FormItem {
 	public function __construct($name, $label, $options = Array()) {
 		parent::__construct($name, $label, $options);
 		$defaultValues = Array(
-			'options' => Array()
+			'options' => Array(),
+			'desc_in_label'=>true,
 		);
 		$this->merge($options, $defaultValues);
 		$this->_update_selected_values();
@@ -119,7 +120,7 @@ class FI_Checkbox extends FormItem {
 	public function addToDB(&$dbForm) {
 		$values = $this->value();
 		foreach ($this->options as $value => $label) {
-			$dbForm->addItem($dbForm->dbName($label), (isset($values[$this->name().'_'.$value])?'X':''));
+			$dbForm->addItem($dbForm->dbName($label), ($values[$value]?'X':''));
 		}
 	}
 
@@ -131,10 +132,9 @@ class FI_Checkbox extends FormItem {
  */
 	public function printEmail () {
 		$html = '';
-		$selected_values = $this->value();
+		$values = $this->value();
 		foreach ($this->options as $value => $label) {
-			$id = $this->name().'_'.$value;
-			if (isset($selected_values[$id])) {
+			if ($values[$value]) {
 				$html .= '<div>'.$label.'</div>';
 			}
 		}

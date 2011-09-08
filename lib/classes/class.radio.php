@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.formitem.php');
@@ -86,6 +86,9 @@ class FI_Radio extends FormItem {
 		if ($input !== NULL) {
 			$this->selected = $this->options[$input];
 		} else {
+			if (! $this->selected && $_POST) {
+				$this->selected = $_POST[$this->name()];
+			}
 			return $this->selected;
 		}
 	}
@@ -109,14 +112,16 @@ class FI_Radio extends FormItem {
 	public function printForm() {
 		$html  = '';
 		$selected_value = $this->value();
+		$html .= $this->printPre();
 		foreach ($this->options as $value => $label) {
 			$id = $this->name().'_'.$value;
 			$label = '<label for="'.$id.'">'.$label.'</label>';
-			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $label)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.$value.'"/>';
+			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $value)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.$value.'"/>';
 
 
 			$html .= '<div class="radio">'.($this->label_left?($label.$input):($input.$label)).'</div>';
 		}
+		$html .= $this->printPost();
 		$html .= $this->printDescription();
 		return $html;
 	}

@@ -62,6 +62,8 @@ $form->addItem(new FI_TextArea('comments', 'Comments'));
 
 $form->addItem(new FI_Captcha('validation', 'Validation Code'));
 
+$form->setButtons(Form::BU('Button Name', 'button_name'));
+
 if (($action = $form->action()) && $form->validate()) {
 
 	/*$form->sendEmail(
@@ -107,7 +109,9 @@ if (($action = $form->action()) && $form->validate()) {
 </head>
 <?php
 
-echo $form->printForm();
+$format = "<[form::messages]><table><tr><td>Name: </td><td><[name]></td></tr><tr><td></td><td><[form::bu::button_name]></td></table>";
+
+echo $form->format($format , false);
 
 
 ?>

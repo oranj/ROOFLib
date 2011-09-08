@@ -1,13 +1,14 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
+
 
 
 require_once(dirname(__FILE__).'/class.form.php');
@@ -36,6 +37,7 @@ class FI_Switch extends FI_Group {
 
 		$defaultValues = Array(
 			'selected' => NULL,
+			'mode'=>'radio', // options are 'select', 'radio';
 		);
 
 		$this->items = Array();
@@ -52,60 +54,57 @@ class FI_Switch extends FI_Group {
 * @return String The HTML string.
 */
 	public function printRow($email = false, $nameAbove = false) {
-		global $SWITCH_JS_INCLUDED;
 		$html = '';
 		$js = '';
-		if (! $SWITCH_JS_INCLUDED) {
-			$SWITCH_JS_INCLUDED = true;
-			$js = '
-
-var _SwitchControllers = Array();
-
-function SwitchController(id, options, start) {
-this.id 		= id;
-this.options 	= options;
-
-this.switchIndex = function(index) {
-	this.switch(this.options[index]);
-}
-
-this.switch = function(id) {
-	for (var i in this.options) {
-		$("#"+this.options[i]).css("display", "none");
-	}
-	$("#"+id).css("display", "block");
-}
-_SwitchControllers[this.id] = this;
-$value = $(\'[name=\'+id+\']\').val();
-start = $(\'option[value=\'+$value+\']\').attr("target");
-this.switch(start);
-}
-';
-		}
+		$this->form->js_files []= 'switch.js';
 		$group_html = '';
-		$select_html = '<select name="'.$this->name().'" onchange="_SwitchControllers[\''.$this->name().'\'].switchIndex(this.selectedIndex)">';
-		$options = Array();
-		$selected = is_null($this->selected)?'':trim($this->name().'_'.$this->selected);
-		$selected_id = ($selected?reset($this->items[$selected]->attr('id')):'');
-		$first = '';
-		foreach ($this->items as $name => $fi_item) {
-			$options []= reset($fi_item->attr('id'));
-			if (! $first) {
-				$first = reset($fi_item->attr('id'));
+		if ($this->mode != 'radio') {
+			$select_html = '<select name="'.$this->name().'" onchange="_SwitchControllers[\''.$this->name().'\'].switchIndex(this.selectedIndex)">';
+			$options = Array();
+			$selected = is_null($this->selected)?'':trim($this->name().'_'.$this->selected);
+			$selected_id = ($selected?reset($this->items[$selected]->attr('id')):'');
+			$first = '';
+			foreach ($this->items as $name => $fi_item) {
+				$options []= reset($fi_item->attr('id'));
+				if (! $first) {
+					$first = reset($fi_item->attr('id'));
+				}
+				$select_html .= '<option target="'.reset($fi_item->attr('id')).'" value="'.$fi_item->name().'"'.(($fi_item->name() == $selected)?' selected="selected"':'').'>'.$fi_item->label().'</option>';
+				$group_html .= $fi_item->printRow($email, $nameAbove);
 			}
-			$select_html .= '<option target="'.reset($fi_item->attr('id')).'" value="'.$fi_item->name().'"'.(($fi_item->name() == $selected)?' selected="selected"':'').'>'.$fi_item->label().'</option>';
-			$group_html .= $fi_item->printRow($email, $nameAbove);
+			$select_html .= '</select>';
+			$js .= '$(function () { new SwitchController("'.$this->name().'", ["'.join('", "', $options).'"], "'.($selected?$selected:$first).'") });';
+			$html .= '<script type="text/javascript">'.$js.'</script>';
+			$attr = $this->attrString();
+			if ($nameAbove) {$html .= '<div '.$attr.'><div class="'.$this->cfg('class_fieldname').'">'.$select_html.'</div><div class="'.$this->cfg('class_fieldvalue').'">'.$group_html.'</div></div>'; }
+			else { $html .= '<tr '.$attr.'><td class="'.$this->cfg('class_fieldname').'">'.$select_html.'</td><td class="'.$this->cfg('class_fieldvalue').'"><table>'.$group_html.'</table></td></tr>';}
+		} else {
+			$options = Array();
+			$selected = is_null($this->selected)?'':trim($this->name().'_'.$this->selected);
+			$selected_id = ($selected?reset($this->items[$selected]->attr('id')):'');
+			$first = '';
+			$index = 0;
+			foreach ($this->items as $name => $fi_item) {
+				$options []= reset($fi_item->attr('id'));
+				if (! $first) {
+					$first = reset($fi_item->attr('id'));
+				}
+				$select_html .= '<label><input type="radio" target="'.reset($fi_item->attr('id')).'" name="'.$this->name().'" onchange="_SwitchControllers[\''.$this->name().'\'].switchIndex(\''.$index++.'\')" value="'.$fi_item->name().'"'.(($fi_item->name() == $selected)?' selected="selected"':'').'>'.$fi_item->label().'</label>';
+				$group_html .= $fi_item->printRow($email, $nameAbove);
+			}
+
+			$js .= '$(function () { new SwitchController("'.$this->name().'", ["'.join('", "', $options).'"], "'.($selected?$selected:$first).'") });';
+			$html .= '<script type="text/javascript">'.$js.'</script>';
+			$attr = $this->attrString();
+			if ($nameAbove) {$html .= '<div '.$attr.'><div class="'.$this->cfg('class_fieldname').'">'.$select_html.'</div><div class="'.$this->cfg('class_fieldvalue').'">'.$group_html.'</div></div>'; }
+			else { $html .= '<tr '.$attr.'><td class="'.$this->cfg('class_fieldname').'">'.$select_html.'</td><td class="'.$this->cfg('class_fieldvalue').'"><table>'.$group_html.'</table></td></tr>';}
 		}
-		$select_html .= '</select>';
-		$js .= '$(function () { new SwitchController("'.$this->name().'", ["'.join('", "', $options).'"], "'.($selected?$selected:$first).'") });';
-		$html .= '<script type="text/javascript">'.$js.'</script>';
-		$attr = $this->attrString();
-		if ($nameAbove) {$html .= '<div '.$attr.'><div class="fldName">'.$select_html.'</div><div class="fldValue">'.$group_html.'</div></div>'; }
-		else { $html .= '<tr '.$attr.'><td class="fldName">'.$select_html.'</td><td class="fldValue"><table>'.$group_html.'</table></td></tr>';}
 		return $html;
 	}
 
-
+	public function printForm($nameAbove) {
+		return $this->printRow(false, true);
+	}
 /**
  * Gets or Sets the value of the FormItem
  *

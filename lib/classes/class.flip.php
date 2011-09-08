@@ -9,10 +9,9 @@
  * @package ROOFLib 0.7
  */
 
+require_once('class.select.php');
 
-require_once('class.formitem.php');
-
-class FI_Text extends FormItem {
+class FI_Flip extends FI_Select {
 
 	protected $_value;
 
@@ -28,6 +27,9 @@ class FI_Text extends FormItem {
 		parent::__construct($name, $label, $options);
 
 		$defaultValues = Array(
+			'show_default'=>false,
+			'inc_text'=>'[+]',
+			'dec_text'=>'[-]',
 		);
 
 		$this->merge($options, $defaultValues);
@@ -65,33 +67,20 @@ class FI_Text extends FormItem {
  * @return String "Text";
  */
 	public static function getType() {
-		return "Text";
+		return "Flip";
 	}
+
 
 /**
- * Gets or Sets the value of the FormItem
+ * Prints the Javascript necessary to update the select into the flip
  *
- * @param String $input Providing an input indicates that the FormItem should be printed with that default.
- *
- * @return Array If using this function as a Getter, gets the value of the item.
+ * @return String "Text";
  */
-	public function value($input = NULL) {
-		if ($input !== NULL) {
-			$this->_value = $input;
-		} else {
-			return $this->_value;
-		}
+	public function print_js() {
+		$this->form->js_files []= 'flip.js';
+		$js = '<script>$(new FlipController("'.$this->name().'", "'.$this->inc_text.'", "'.$this->dec_text.'"));</script>';
+		return $js;
 	}
-
-/**
- * Adds the form item to the database.
- *
- * @param DatabaseForm $form The DatabaseForm
- */
-	public function addToDB(&$dbForm) {
-		$dbForm->addItem($dbForm->dbName($this->label), $this->value());
-	}
-
 
 /**
  * Prints the FormItem for the Form
@@ -99,17 +88,8 @@ class FI_Text extends FormItem {
  * @return String The HTML to be printed as a form.
  */
 	public function printForm() {
-		$value = $this->value();
-		$html = $this->printPre().'<input type="text" name="'.$this->name().'"'.(($this->required() && ($this->form->required_attr || $this->required_attr))?' required="required"':'').' value="'.htmlentities($this->value()).'" />'.$this->printPost().$this->printDescription();
+		$html = parent::printForm();
+		$html .= $this->print_js();
 		return $html;
-	}
-
-/**
- * Prints the FormItem for Email
- *
- * @return String The HTML to be printed as an email.
- */
-	public function printEmail() {
-		return $this->value();
 	}
 }

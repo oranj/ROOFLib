@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.formitem.php');
@@ -112,7 +112,7 @@ class FI_Select extends FormItem {
 	public function check(&$errors, &$warnings, &$continue) {
 		$value = $this->value();
 		if ($this->default == $value && $this->required) {
-			$errors []= 'Please enter a value for field: <em>'.$this->label().'</em>';
+			$errors []= Form::ME('error', 'Please enter a value for field: <em>'.$this->label().'</em>', $this, 'This field is required');
 		}
 		parent::check($errors, $warnings, $continue);
 	}

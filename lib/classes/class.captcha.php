@@ -1,14 +1,14 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
-
+ 
 require_once('class.formitem.php');
 
 class FI_Captcha extends FormItem {
@@ -26,7 +26,7 @@ class FI_Captcha extends FormItem {
 
 	public function __construct($name, $label, $options = Array()) {
 		$defaultValues = Array(
-			'img_url' => "../lib/validation_png.php"
+			'img_url' => "../lib/validation_png.php",
 		);
 		parent::__construct($name, $label, true, Array(), $description);
 		$this->merge($options, $defaultValues);
@@ -85,10 +85,10 @@ class FI_Captcha extends FormItem {
 	public function check(&$errors, &$warnings, &$continue) {
 		global $FORM_DEBUG;
 		session_start();
-		if (! isset($_SESSION) || $_SESSION['security_code'] != strtolower($this->value())) {
-			$errors [] = 'There seems to be a problem with your security code'.(($FORM_DEBUG)?(strtolower(' ("'.$this->value()).'" vs "'.$_SESSION['security_code'].'")'):'');
+		if (! isset($_SESSION) || ! $_SESSION['security_code'] || $_SESSION['security_code'] != strtolower($this->value())) {
+			$errors [] = Form::ME('error', 'There seems to be a problem with your security code'.(($FORM_DEBUG)?(strtolower(' ("'.$this->value()).'" vs "'.$_SESSION['security_code'].'")'):''), $this);
 		} else {
-			$warnings [] = 'Please re-enter the security code';
+			$warnings [] = Form::ME('warning', 'Please re-enter the security code', $this);
 		}
 	}
 

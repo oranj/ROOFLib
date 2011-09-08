@@ -1,12 +1,12 @@
 <?php
 /**
  * ROOFLib
- * Version 0.4
- * Copyright 2011, Ecreativeworks
- * Raymond Minge
- * rminge@ecreativeworks.com
+ * Version 0.7
+ * MIT License
+ * Ray Minge
+ * the@rayminge.com
  *
- * @package ROOFLib 0.4
+ * @package ROOFLib 0.7
  */
 
 require_once('class.text.php');
@@ -30,6 +30,6 @@ class FI_Phone extends FI_Text {
  * @return String The HTML to be printed as a form.
  */
 	public function printForm() {
-		return $this->printPre().'<input autocomplete="off" type="tel" '.($this->required()?'required ':'') .'name="'.$this->name().'" value="'.$this->value().'"/>'.$this->printPost().$this->printDescription();
+		return $this->printPre().'<input type="tel" '.($this->required() && ($this->required_attr || $this->form->required_attr)?'required ':'') .'name="'.$this->name().'" value="'.$this->value().'"/>'.$this->printPost().$this->printDescription();
 	}
 }
