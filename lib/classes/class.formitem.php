@@ -41,7 +41,7 @@ abstract class FormItem {
 			'required_str' 	=> '',
 			'desc_in_label' => false,
 			'required_attr' => false,
-			'message_inline'=> true, // Options are Inline or Top
+			'message_inline'=> false, // Options are Inline or Top
 			'help'			=> NULL,
 		);
 
@@ -425,11 +425,14 @@ function popDown() {
 			}
 		} else {
 			$messages = ($this->message_inline || $this->form->message_inline)?$this->printMessages():'';
-			if ($messages) { $messages = (($nameAbove?'<div ':'<td ').' class="'.$this->cfg('class_fieldmessages').'">'.$messages.'</'.($nameAbove?'div>':'td>')); }
+			
+			$message_td = (! $nameAbove && ! $this->form->messages_underneath);
+			
+			if ($messages) { $messages = (($message_td?'<td ':'<div ').' class="'.$this->cfg('class_fieldmessages').'">'.$messages.'</'.($message_td?'td>':'div>')); }
 			if ($nameAbove) {
 				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="'.$this->cfg('class_fieldname').'">'.$this->label().$this->printRequired().$this->printHelp().'</div>')).'<div class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</div>'.$messages.'</div>';
 			} else {
-				return '<tr '.$this->attrString().'><td class="'.$this->cfg('class_fieldname').'">'.($this->hide_label?'':($this->label().$this->printRequired().$this->printHelp().'</div>')).'</td><td class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</td>'.$messages.'</tr>';
+				return '<tr '.$this->attrString().'><td class="'.$this->cfg('class_fieldname').'">'.($this->hide_label?'':($this->label().$this->printRequired().$this->printHelp().'</div>')).'</td><td class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().($message_td?('</td>'.$messages):($messages.'</td>')).'</tr>';
 			}
 		}
 	}

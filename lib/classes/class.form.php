@@ -105,10 +105,11 @@ class Form {
 		$this->noteMessage = $this->cfg('text_note');
 		$this->required_str = $this->cfg('text_required');
 		$this->required_attr = $this->cfg('attr_required');
-		$this->message_inline = false;
+		$this->message_inline = true;
 		$this->status_messages_printed = false;
 		$this->setButtons(self::BU('Submit', 'submit'));
 		$this->resources = $this->cfg('dir_resources');
+		$this->messages_underneath = true;
 
 		$this->js_files = Array();
 		$this->js_dir = dirname(__FILE__).'/../js/';
@@ -277,6 +278,10 @@ CSS;
 				break;
 			case 'script':
 				$html = $this->_getButtonScriptHTML($bu->label, $bu->value);
+				break;
+			case 'custom':
+				$html = $this->_getButtonCustomHTML($bu->label, $bu->value);
+				break;
 			default:
 		}
 		return $html;
@@ -389,6 +394,10 @@ CSS;
 		$form_fields_values[$key] = $value;
 	}
 
+
+	private function _getButtonCustomHTML($pre_post, $name) {
+		return $pre_post['pre'].$this->_getButtonHTML($pre_post['label'], $name).$pre_post['post'];
+	}
 
 /**
  * Gets a prefix for the buttons' name
