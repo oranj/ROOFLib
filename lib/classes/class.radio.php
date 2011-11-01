@@ -30,6 +30,9 @@ class FI_Radio extends FormItem {
 		$defaultValues = Array(
 			'options' => Array(),
 			'label_left' => false,
+			'other' => false,
+			'other_label' => 'Other',
+			'other_name' => 'rf_other',
 		);
 
 		$this->merge($options, $defaultValues);
@@ -60,6 +63,8 @@ class FI_Radio extends FormItem {
 	public static function description () {
 		return Array(
 			'options'=>self::DE('Array', 'The list of available options', 'Array()'),
+			'other'=>self::DE('bool', 'Whether or not to display an "other" field', 'false'),
+			'other_label'=>self::DE('Array', 'The default "Other" label', '"Other"'),
 			'label_left'=>self::DE('bool', 'Make the labels appear to the left of the radio', 'false'),
 		);
 	}
@@ -83,11 +88,16 @@ class FI_Radio extends FormItem {
  * @return String If using this function as a Getter, gets the value of the item.
  */
 	public function value($input = NULL){
+
 		if ($input !== NULL) {
 			$this->selected = $this->options[$input];
 		} else {
-			if (! $this->selected && $_POST) {
-				$this->selected = $_POST[$this->name()];
+			if ($_POST) {
+				if ($this->other && ($_POST[$this->name] == $this->other_name)) {
+					$this->selected = "[".$this->other_label."] ".$_POST[$this->name().'_other'];
+				} else {
+					$this->selected = $_POST[$this->name()];
+				}
 			}
 			return $this->selected;
 		}
@@ -117,8 +127,12 @@ class FI_Radio extends FormItem {
 			$id = $this->name().'_'.$value;
 			$label = '<label for="'.$id.'">'.$label.'</label>';
 			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $value)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.$value.'"/>';
-
-
+			$html .= '<div class="radio">'.($this->label_left?($label.$input):($input.$label)).'</div>';
+		}
+		if ($this->other) {
+			$id = $this->name().'_other';
+			$label = '<label for="'.$id.'">'.$this->other_label.' <input name="'.$id.'" value="'.$vaue.'" /></label>';
+			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $value)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.htmlentities($this->other_name).'"/>';
 			$html .= '<div class="radio">'.($this->label_left?($label.$input):($input.$label)).'</div>';
 		}
 		$html .= $this->printPost();

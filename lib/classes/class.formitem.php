@@ -41,7 +41,7 @@ abstract class FormItem {
 			'required_str' 	=> '',
 			'desc_in_label' => false,
 			'required_attr' => false,
-			'message_inline'=> false, // Options are Inline or Top
+			'message_inline'=> true, // Options are Inline or Top
 			'help'			=> NULL,
 		);
 
@@ -471,7 +471,7 @@ function popDown() {
  * @param Bool $continue A Bool to indicate whether or not the containing FI_Group or Form should break upon completion
  */
 	public function check(&$errors, &$warnings, &$continue) {
-		$value = trim($this->value());
+		$value = $this->value();
 		if ($this->required && ! $value && $value !== '0') {
 			$errors []= Form::ME('error', sprintf($this->cfg('text_error_head'), $this->label()), $this, sprintf($this->cfg('text_error_inline'), $this->label()));
 		}

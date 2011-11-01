@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 $ROOFL_Config = Array(
 	'file_root'				=> dirname(__FILE__).'/',
 	'web_root'				=> 'http://'.$_SERVER['HTTP_HOST'],
-	'web_catalog'			=> '/forms_rm/',
+	'web_catalog'			=> '/_base_apps/forms_rm/forms_rm/',
 	
 	
 	'dir_uploads' 			=> 'uploads/',
@@ -24,9 +24,10 @@ $ROOFL_Config = Array(
 	'class_warning'			=> 'rf_warning',
 	'class_inline'			=> 'rf_inline',
 	'class_error'			=> 'rf_error',
+	'class_success'			=> 'rf_succes',	
 	'class_fieldname'		=> 'rf_name',
 	'class_fieldvalue'		=> 'rf_value',
-	'class_fieldvalue'		=> 'rf_messages',
+	'class_fieldmessages'		=> 'rf_messages',
 	'class_description'		=> 'rf_desc',
 				
 	'text_warning'			=> '',

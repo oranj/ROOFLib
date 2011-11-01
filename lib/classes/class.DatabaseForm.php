@@ -34,6 +34,7 @@ class DatabaseForm {
 		$name = strip_tags($name);
 		$name = preg_replace('/\(+.*\)/', '', $name); // get rid of anything in parens
 		$name = preg_replace('/[\&\#]/', '', $name); // get rid of special chars
+
 		$tokens = preg_split('([\ ,\/\-_\(_\):\?])', $name);
 
 
@@ -48,6 +49,15 @@ class DatabaseForm {
 		}
 
 		$name= join('_', $tokens);
+		
+		$max_length = 40;
+		
+		if (strlen($name) > $max_length) {
+			$name = substr($name, 0, $max_length);
+			$components = preg_split('/_/', $name);
+			unset($components[sizeof($components) - 1]);
+			$name = implode('_', $components);
+		}
 		return $name;
 	}
 

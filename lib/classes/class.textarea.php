@@ -29,6 +29,9 @@ class FI_TextArea extends FI_Text {
 		if (! $__WYSIWYG_TEXTAREAS) {
 			$__WYSIWYG_TEXTAREAS = Array();
 		}
+		if (! defined('WYSIWYG_SCRIPT')) {
+			define('WYSIWYG_SCRIPT', 'WYSIWYG_SCRIPT');
+		}
 		$defaultValues = Array(
 			'wysiwyg'=>false,
 			'wysiwygInputClass'=>'ckeditor',

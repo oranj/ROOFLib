@@ -35,7 +35,10 @@ class FI_Bool extends FormItem {
 
 		$this->merge($options, $defaultValues);
 
-		$this->value($_POST[$this->name()]);
+		$this->_value = false;
+		if (isset($_POST[$this->name()])) {
+			$this->value($_POST[$this->name()]);
+		}
 
 	}
 
@@ -135,7 +138,7 @@ class FI_Bool extends FormItem {
 				$condition =  $bang.'($("[name='.$this->name().']:checked").attr("value") == 1)';
 				break;
 		}
-		$this->dependent_strings []= $target.'.change(function() { if('.$condition.') { $("#css_'.$fi_id.'").css("display", "table-row"); } else { $("#css_'.$fi_id.'").css("display", "none"); } }).change();';
+		$this->dependent_strings []= $target.'.change(function() { if('.$condition.') { $("#'.$this->cfg('prefix_id').$fi_id.'").css("display", "table-row"); } else { $("#css_'.$fi_id.'").css("display", "none"); } }).change();';
 	}
 
 /**

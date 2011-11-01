@@ -6,10 +6,14 @@ require_once(dirname(__FILE__).'/../lib/classes/class.form.php');
 require_once(dirname(__FILE__).'/../lib/data/statesprovinces.php');
 require_once(dirname(__FILE__).'/../lib/data/countries.php');
 
+mysql_connect('localhost', 'ecw', 'dbman');
+mysql_select_db('ecw_newforms_base');
+
 $form = new Form('contact');
 $form->required_attr = false;
 
 #$form->addItem(new FI_Flip('year', 'Year:', array('options'=>range(1990, 2021), 'inc_text'=>'', 'dec_text'=>'')));
+$form->setSuccessMessage('Success!');
 
 $form->addItem(new FI_Separator('yearsep', 'Contact Information', array('separator'=>'', 'help'=>'<strong>Your information is safe with us!</strong><p>We will not distribute any personal information we receive from you.</p>')));
 
@@ -42,8 +46,7 @@ $form->addItem(new FI_Captcha('captcha', 'Are you human?', Array('img_url'=>'../
 $form->setButtons(Form::BU('Send', 'send'));
 
 if ($form->action() && $form->validate()) {
-	print_r($form->value());
-	exit();
+	$form->storeEntry();
 	header('Location: ?success');
 	exit();
 } else if (! $form->action() ) {

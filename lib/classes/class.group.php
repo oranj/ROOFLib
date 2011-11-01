@@ -93,7 +93,7 @@ class FI_Group extends FormItem {
 		if (isset($this->items[$formItem->name()])) {
 			return false; // Duplicate name
 		}
-		$this->attr('id', 'css_'.strtolower($this->name()), true);
+		$this->attr('id', $this->cfg('prefix_id').strtolower($this->name()), true);
 		$this->items[$formItem->name()] = $formItem;
 	}
 
@@ -196,7 +196,7 @@ class FI_Group extends FormItem {
 			if (! $this->hide_label && $this->label !== NULL) {
 				$html .= '<'.$this->label_tag.'>'.$this->label.'</'.$this->label_tag.'>'."\n";
 			}
-			$form_tag = ($naveAbove || $this->forceChildNameAbove)?'div':'table';
+			$form_tag = ($nameAbove || $this->forceChildNameAbove)?'div':'table';
 
 			$html .= '<'.$form_tag.'>'."\n";;
 			foreach ($this->items as $item) {

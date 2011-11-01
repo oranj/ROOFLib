@@ -95,7 +95,7 @@ class Form {
  * @param String $name The unique of the Form - the name of the table if databasing
  */
 	public function __construct($name) {
-	
+
 		$this->name = preg_replace('/\s+/', '_', strtolower($name));
 		$this->items = Array();
 		$this->validators = Array();
@@ -124,14 +124,14 @@ class Form {
 		$this->cache = $this->cfg('cache');
 		$this->cacheDir = dirname(__FILE__).'/../cache/';
 
-$css = <<<CSS
+$css = '
 	.fldValue, .fldName { vertical-align:top; padding-bottom:3px; font:12px/1.6em Arial, sans-serif; color:#333;  border-top:1px solid #efefef; }
 	.fldName { padding-right:25px; color:#7A3D00; }
 	table { border-collapse: collapse; }
-	.css_fi_separator { font:15px/1.6em Arial, sans-serif; }
+	.'.$this->cfg('prefix_class').'separator { font:15px/1.6em Arial, sans-serif; }
 	h1 { font:18px/1.6em Arial, sans-serif; margin:10px 0px 0px; font-weight:bold; }
 	a { color:#17345c; }
-CSS;
+';
 
 		$this->setMailCSS($css);
 
@@ -140,7 +140,7 @@ CSS;
 		$this->__sessioned = NULL;
 
 	}
-	
+
 	public function cfg($key) {
 		global $ROOFL_Config;
 		if (isset($ROOFL_Config[$key])) {
@@ -546,9 +546,8 @@ CSS;
 		$html = '';
 		if(! $this->status_messages_printed) {
 			if ($this->errors) {
-
 				foreach ($this->errors as $me) {
-					if (! ($me->formItem->message_inline || $this->message_inline)) {
+					if (isset($me->formItem->name) && ! ($me->formItem->message_inline || $this->message_inline)) {
 						$html .= '<li>'.$me->message.'</li>';
 					}
 				}
@@ -560,7 +559,7 @@ CSS;
 
 				$html = '';
 				foreach ($this->warnings as $me) {
-					if (! ($me->formItem->message_inline || $this->message_inline)) {
+					if (isset($me->formItem->name) && ! ($me->formItem->message_inline || $this->message_inline)) {
 						$html .= '<li>'.$me->message.'</li>';
 					}
 				}
@@ -822,24 +821,37 @@ CSS;
 		$successes = Array();
 
 		$success = true;
-
+		$_errors = $_warnings = $_successes = Array();
 		foreach ($this->validators as $name => $validator) {
 			if (! $continue) {
 				break;
 			}
-			$continue = $validator($this, $errors, $warnings, $successes);
+
+			$continue = $validator($this, $_errors, $_warnings, $_successes);
 		}
+
+		foreach ($_errors as $e) {
+			$errors []= Form::ME('error', $e);
+		}
+		foreach ($_warnings as $w) {
+			$warnings []= Form::ME('warning', $w);
+		}
+		foreach ($_successes as $s) {
+			$successes []= Form::ME('success', $s);
+		}
+
 		foreach ($this->items as $name => $item) {
 			if (! $continue) {
 				break;
 			}
-
 			$item->check($errors, $warnings, $continue);
 		}
 
 		$this->errors = $errors;
 		$this->warnings = $warnings;
 		$this->successes = $successes;
+
+
 
 		foreach ($this->errors as $me) {
 			$me->formItem->errors []= $me;

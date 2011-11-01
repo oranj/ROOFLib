@@ -103,7 +103,7 @@ class FI_File extends FormItem {
 	public function print_js() {
 		global $BASE_SCRIPT_ADDED;
 		$this->form->js_files []= 'file.js';
-		$script .= '<script type="text/javascript">var file_uploader_'.$this->name().' = new file_uploader("'.$this->name().'", '.$this->maxFiles.', "'.$this->rel.'", "'.$this->target.'");';
+		$script = '<script type="text/javascript">var file_uploader_'.$this->name().' = new file_uploader("'.$this->name().'", '.$this->maxFiles.', "'.$this->rel.'", "'.$this->target.'");';
 		foreach ($this->previousFiles as $id => $IN) {
 			$script .= "\n".'file_uploader_'.$this->name().'.add_existing_file("'.$IN->filename.'", "'.$this->uploadDir.$IN->filename.'", "'.$IN->id.'");';
 		}

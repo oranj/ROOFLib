@@ -2,8 +2,6 @@
 
 include_once(dirname(__FILE__).'/../lib/classes/class.form.php');
 
-session_start();
-
 if (! isset($_SESSION['insert_no'])) {
 	$_SESSION['insert_no'] = 0;
 }
@@ -12,6 +10,8 @@ function dump($var, $return = false) {
 	$str = "<pre>".htmlentities(print_r($var, true))."</pre>";
 	if ($return) { return $str; } else { echo $str; }
 }
+
+$cfg = $ROOFL_Config;
 
 $addform = new Form('add');
 
@@ -32,7 +32,7 @@ $addform->setButtons(Form::BU('Insert', 'insertRow()', 'script'));
 if (isset($_REQUEST['class'])) {
 	$class = $_REQUEST['class'];
 	$class = (($class !== 'FormItem')?'FI_':'').$class;
-	$valid_insert = ($_REQUEST['name'] && $_REQUEST['label']);
+	$valid_insert = (isset($_REQUEST['name']) && isset($_REQUEST['label']));
 	if (isset($_REQUEST['info'])) {
 		echo $FORMITEMS[$_REQUEST['class']];
 	} else if ($valid_insert) {
@@ -40,7 +40,7 @@ if (isset($_REQUEST['class'])) {
 		$name = trim($_REQUEST['name']);
 		if (isset($_REQUEST['code'])) {
 			$_SESSION['insert_no'] ++;
-			$insert_form = new Form('insert_'.$_SESSION['insert_No']);
+			$insert_form = new Form('insert_'.$_SESSION['insert_no']);
 			$description = FormItem::describe($class);
 			foreach ($description as $key => $data) {
 				$c = '';
@@ -176,11 +176,11 @@ if (isset($_REQUEST['class'])) {
 <script type="text/javascript">
 
 function insertRow() {
-	getRow($('#f_add #css_class select option:selected').attr('value'), $('#f_add #css_name input').attr('value'), $('#f_add #css_label input').attr('value'));
+	getRow($('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id']?>class select option:selected').attr('value'), $('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id']?>name input').attr('value'), $('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id'] ?>label input').attr('value'));
 }
 
 function getRow(_class, _name, _label) {
-	$.get('formbuilder.php', {'code':true, 'bool':$('[name="required"]:checked').attr('value'), 'class':_class, 'description':$('#css_description input').attr('value'), 'name':_name, 'label':_label}, codeSuccess);
+	$.get('formbuilder.php', {'code':true, 'bool':$('[name="required"]:checked').attr('value'), 'class':_class, 'description':$('#<?= $cfg['prefix_id'] ?>description input').attr('value'), 'name':_name, 'label':_label}, codeSuccess);
 }
 
 function rowSuccess(data) {
@@ -194,17 +194,18 @@ function codeSuccess(data) {
 
 	$('#code_insert')[0].innerHTML += data.div;
 	setupLine($('#'+data.id));
-	$('#css_name input').focus();
+	$('#<?= $cfg['prefix_id'] ?>name input').focus();
 }
 
 function clear() {
-	$('#f_add #css_name input').attr('value', '');
-	$('#f_add #css_label input').attr('value', '');
-	$('#f_add #css_description input').attr('value', '');
+	$('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id'] ?>name input').attr('value', '');
+	$('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id'] ?>label input').attr('value', '');
+	$('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id'] ?>description input').attr('value', '');
 }
 
 function onClassChange() {
-	var _class = $('#f_add #css_class select option:selected').attr('value');
+	var _class = $('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id'] ?>class select option:selected').attr('value');
+	console.log("class change: "+ _class);
 	$.get('formbuilder.php', {'info':true, 'class':_class, }, onClassChangeSuccess);
 }
 
@@ -213,7 +214,8 @@ function onClassChangeSuccess(data) {
 }
 
 function setup() {
-	$('#f_add #css_class select').change(onClassChange);
+	console.log("setup");
+	$('#<?= $cfg['prefix_form']?>add #<?= $cfg['prefix_id']?>class select').change(onClassChange);
 	$('#validator_click').click(function() { $('#validator').toggle(); });
 	onClassChange();
 }
@@ -297,17 +299,17 @@ function check_password($fi_password, &$errors, &$warnings) {
 	<div>?&gt;</div>
 	<div>&lt;style&gt;</div>
 	<pre contenteditable="true">
-span.required, .required span { color:#c00; font-weight:bold; font-size:20px; }
-.fldValue, .fldName { vertical-align:top; font-size:12px; padding-bottom:3px; }
-.fldValue input, .fldValue select, .fldValue textarea { border:1px solid; border-color:#777 #ccc #ccc #777; padding:3px; }
-.css_fi_text input { width:200px; }
-.css_fi_captcha input { width:50px; }
-.fldValue .descr { font-style:italic; }
-.success { background-color:#D6EBFF; padding:25px; border:1px solid #99CCFF; color:#000; font-weight:bold; }
-.error { background-color:#FFCCCC; padding:5px; border:1px solid #FF0000; color:#f00; font-weight:bold; }
-.error ul { margin:5px 0px; color:#000;}
-.error li, .warning li { font-weight:normal; }
-.warning { background-color:#FFFFCC; padding:5px; border:1px solid #CC9900; color:#000; font-weight:bold; }
+span.<?= $cfg['class_required'] ?>, .<?= $cfg['class_required'] ?> span { color:#c00; font-weight:bold; font-size:20px; }
+.<?= $cfg['class_fieldvalue'] ?>, .<?= $cfg['class_fieldname'] ?> { vertical-align:top; font-size:12px; padding-bottom:3px; }
+.<?= $cfg['class_fieldvalue'] ?> input, .<?= $cfg['class_fieldvalue'] ?> select, .<?= $cfg['class_fieldvalue'] ?> textarea { border:1px solid; border-color:#777 #ccc #ccc #777; padding:3px; }
+.<?= $cfg['prefix_class']; ?>text input { width:200px; }
+.<?= $cfg['prefix_class']; ?>captcha input { width:50px; }
+.<?= $cfg['class_fieldvalue'] ?> .<?= $cfg['class_description'];?> { font-style:italic; }
+.<?= $cfg['class_success']?> { background-color:#D6EBFF; padding:25px; border:1px solid #99CCFF; color:#000; font-weight:bold; }
+.<?= $cfg['class_error'] ?> { background-color:#FFCCCC; padding:5px; border:1px solid #FF0000; color:#f00; font-weight:bold; }
+.<?= $cfg['class_error'] ?> ul { margin:5px 0px; color:#000;}
+.<?= $cfg['class_error'] ?> li, .<?= $cfg['class_warning'] ?> li { font-weight:normal; }
+.<?= $cfg['class_warning'] ?> { background-color:#FFFFCC; padding:5px; border:1px solid #CC9900; color:#000; font-weight:bold; }
 </pre>
 	<div>&lt;/style&gt;</div>
 	<div>&nbsp;</div>

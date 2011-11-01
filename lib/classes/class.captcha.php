@@ -25,10 +25,10 @@ class FI_Captcha extends FormItem {
  */
 
 	public function __construct($name, $label, $options = Array()) {
+		parent::__construct($name, $label, $options);
 		$defaultValues = Array(
 			'img_url' => "../lib/validation_png.php",
 		);
-		parent::__construct($name, $label, true, Array(), $description);
 		$this->merge($options, $defaultValues);
 	}
 
@@ -84,7 +84,6 @@ class FI_Captcha extends FormItem {
  */
 	public function check(&$errors, &$warnings, &$continue) {
 		global $FORM_DEBUG;
-		session_start();
 		if (! isset($_SESSION) || ! $_SESSION['security_code'] || $_SESSION['security_code'] != strtolower($this->value())) {
 			$errors [] = Form::ME('error', 'There seems to be a problem with your security code'.(($FORM_DEBUG)?(strtolower(' ("'.$this->value()).'" vs "'.$_SESSION['security_code'].'")'):''), $this);
 		} else {

@@ -5,10 +5,11 @@ $config = array();
 $config['forms'] = array(
 	'contact' => array('file'=>'contact.php','db'=>'contact','name'=>'Contact Us'),
 	'sample1' => array('file'=>'sample1.php','db'=>'sample_1','name'=>'Sample 1'),
+	'survey' => array('file'=>'survey.php','db'=>'survey','name'=>'Survey'),
 );
 
 $config['remote_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/';
-$config['local_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/test/ray/forms_db/';
+$config['local_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/_base_apps/forms_rm/forms_rm/';
 
 $config['database_host'] = 'localhost';
 $config['database_user'] = 'ecw';
