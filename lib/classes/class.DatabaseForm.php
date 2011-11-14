@@ -33,7 +33,7 @@ class DatabaseForm {
 	function dbName($name) {
 		$name = strip_tags($name);
 		$name = preg_replace('/\(+.*\)/', '', $name); // get rid of anything in parens
-		$name = preg_replace('/[\&\#]/', '', $name); // get rid of special chars
+		$name = preg_replace('/[\!\&\#]/', '', $name); // get rid of special chars
 
 		$tokens = preg_split('([\ ,\/\-_\(_\):\?])', $name);
 

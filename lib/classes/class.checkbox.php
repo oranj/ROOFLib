@@ -30,10 +30,8 @@ class FI_Checkbox extends FormItem {
 			'options' => Array(),
 			'desc_in_label'=>true,
 			'label_left' => false,
-   			'other' => false,
-			'other_label' => 'Other',
-			'other_name' => 'other',
-			'db_join' => false,
+   			'others' => Array(),
+   			'db_join' => false,
 		);
 		$this->merge($options, $defaultValues);
 		$this->_update_selected_values();
@@ -82,6 +80,31 @@ class FI_Checkbox extends FormItem {
 	}
 
 
+
+/**
+ * Performs native validation within the FormItem.
+ *
+ * @param Array $errors An array in which to place errors
+ * @param Array $warnings An array in which to place warnings
+ * @param Bool $continue A Bool to indicate whether or not the containing FI_Group or Form should break upon completion
+ */
+	public function check(&$errors, &$warnings, &$continue) {
+		$values = $this->value();
+		$found = false;
+		if ($this->required) {
+			foreach ($values as $key => $v) {
+				if ($v) {
+					$found = true;
+				}
+			}
+		    if (! $found) {
+				$errors []= Form::ME('error', sprintf($this->cfg('text_error_head'), $this->label()), $this, sprintf($this->cfg('text_error_inline'), $this->label()));
+			}
+		}
+
+		$this->checkValidators($errors, $warnings, $continue);
+	}
+
 /**
  * Gets or Sets the value of the FormItem
  *
@@ -97,22 +120,26 @@ class FI_Checkbox extends FormItem {
 				}
 			}
 		} else {
+			if ($_POST) {
 
-			$this->_update_selected_values();
-			$out = Array();
-			foreach ($this->options as $value => $label) {
-				$out[$value] = (int)(isset($this->selected[$this->name().'_'.$value]));
-			}
-			if ($this->other) {
-				$other_name = $this->name().'_'.$this->other_name;
-				foreach ($_POST[$other_name] as $val) {
-					if ($val != $other_name) {
-						$out[$this->other_name] = $val;
+				$this->_update_selected_values();
+				$out = Array();
+				foreach ($this->options as $value => $label) {
+					$out[$value] = (int)(isset($this->selected[$this->name().'_'.$value]));
+				}
+				foreach ($this->others as $value => $label) {
+					$other_name = $this->name().'_'.$value;
+
+
+					foreach ($_POST[$other_name] as $val) {
+						if ($val != $other_name) {
+							$out[$value] = stripslashes($val);
+						}
 					}
 				}
-			}
 
-			return $out;
+				return $out;
+			}
 		}
 	}
 
@@ -124,25 +151,20 @@ class FI_Checkbox extends FormItem {
  */
 	public function printForm() {
 		$html  = '';
+		$values = $this->value();
+
 		foreach ($this->options as $value => $label) {
 			$id = $this->name().'_'.$value;
 			$html .= '<div><input type="checkbox" id="'.$id.'" name="'.$id.'" value="'.$value.'" '.((isset($this->selected[$id]) && $this->selected[$id])?' checked':'').'/><label for="'.$id.'">'.$label.'</label></div>'."\n";
 		}
 
-		if ($this->other) {
-			$post = $this->name().'_'.$this->other_name;
-			$value = '';
-			if (isset($_POST[$post])) {
-				foreach ($_POST[$post] as $value) {
-					if ($value != $post) {
-						break;
-					}
-				}
-			}
+		foreach ($this->others as $name => $label) {
+			$value = $values[$name];
 
-			$id = $this->name().'_'.$this->other_name;
-			$label = '<label for="'.$id.'">'.$this->other_label.'</label> <input onclick="document.getElementById(\''.$id.'\').checked=\'checked\';" name="'.$id.'[]" value="'.$value.'" />';
-			$input = '<input type="checkbox" id="'.$id.'" '.((isset($this->selected[$id]))?(' checked="checked" '):('')).'name="'.$id.'[]" value="'.htmlentities($value).'" />';
+
+			$id = $this->name().'_'.$name;
+			$label = '<label for="'.$id.'">'.$label.'</label> <input onclick="document.getElementById(\''.$id.'\').checked=\'checked\';" name="'.$id.'[]" value="'.htmlentities($value).'" />';
+			$input = '<input type="checkbox" id="'.$id.'" '.(($value)?(' checked="checked" '):('')).'name="'.$id.'[]" value="'.htmlentities($value).'" />';
 			$html .= '<div class="checkbox">'.($this->label_left?($label.$input):($input.$label)).'</div>';
 		}
 		return $html;
@@ -163,14 +185,22 @@ class FI_Checkbox extends FormItem {
 					$save []= $label;
 				}
 			}
-			if ($this->other && $values[$this->other_name]) {
-				$save []= "[".$this->other_label."] ".$values[$this->other_name];
+			foreach ($this->others as $value => $label) {
+				if ($values[$value]) {
+					$save []= $label.":: ".$values[$value];
+				}
 			}
+#			if ($this->other && $values[$this->other_name]) {
+#				$save []= "[".$this->other_label."] ".$values[$this->other_name];
+#			}
 
 			$dbForm->addItem($dbForm->dbName($this->label()), join(" | ", $save));
 		} else {
 			foreach ($this->options as $value => $label) {
 				$dbForm->addItem($dbForm->dbName($label), ($values[$value]?'X':''));
+			}
+            foreach ($this->others as $value => $label) {
+				$dbForm->addItem($dbForm->dbName($label), ($values[$value]));
 			}
 		}
 	}
@@ -187,6 +217,11 @@ class FI_Checkbox extends FormItem {
 		foreach ($this->options as $value => $label) {
 			if ($values[$value]) {
 				$html .= '<div>'.$label.'</div>';
+			}
+		}
+		foreach ($this->others as $value => $label) {
+			if ($values[$value]) {
+				$html .= '<div><em>'.$label.'</em>: '.htmlentities($values[$value]).'</div>';
 			}
 		}
 		if (! $html) {

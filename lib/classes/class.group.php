@@ -206,7 +206,7 @@ class FI_Group extends FormItem {
 			$html .= '</'.$this->field_tag.'>'."\n";
 			$html .= ($nameAbove?'</div>':'</td></tr>')."\n";
 		} else {
-			$html .= (($nameAbove)?'<div>':'<tr><td colspan="2">').($this->hide_label?'':('<strong>'.$this->label.'</strong>'));
+			$html .= (($nameAbove)?'<div>':'<tr><td colspan="2" class="'.$this->cfg('prefix_class').'separator">').($this->hide_label?'':('<strong>'.$this->label.'</strong>'));
 			$html .= (($nameAbove)?'</div>':'</td></tr>')."\n";
 			foreach ($this->items as $item) {
 				if ($item->email) {

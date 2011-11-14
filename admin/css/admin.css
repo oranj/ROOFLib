@@ -111,15 +111,15 @@ small {
 	 width:100%;  
 }
 
-#container_top { background:#fff url(../../images/bg_top.png) repeat-x top left; }
-#container_top_left { background:url(../../images/bg_top_left.png) no-repeat top left; }
-#container_top_right { background:url(../../images/bg_top_right.png) no-repeat top right; }
+#container_top { background:#fff url(../images/bg_top.png) repeat-x top left; }
+#container_top_left { background:url(../images/bg_top_left.png) no-repeat top left; }
+#container_top_right { background:url(../images/bg_top_right.png) no-repeat top right; }
 
-#container_left { background:url(../../images/bg_left.png) repeat-y top left; }
-#container_right { background:url(../../images/bg_right.png) repeat-y top right; }
-#container_bottom { background:url(../../images/bg_bottom.png) repeat-x bottom left; }
-#container_bottom_right { background:url(../../images/bg_bottom_right.png) no-repeat bottom right; }
-#container_bottom_left { background:url(../../images/bg_bottom_left.png) no-repeat bottom left; }
+#container_left { background:url(../images/bg_left.png) repeat-y top left; }
+#container_right { background:url(../images/bg_right.png) repeat-y top right; }
+#container_bottom { background:url(../images/bg_bottom.png) repeat-x bottom left; }
+#container_bottom_right { background:url(../images/bg_bottom_right.png) no-repeat bottom right; }
+#container_bottom_left { background:url(../images/bg_bottom_left.png) no-repeat bottom left; }
 
 #content { padding:40px 40px 50px 40px; margin:0; z-index:1; }
 
@@ -141,7 +141,7 @@ table.tablesorter thead tr th, table.tablesorter tfoot tr th {
 	padding-right:16px;
 }
 table.tablesorter thead tr .header {
-    background-image: url(../../images/bg.gif);
+    background-image: url(../images/bg.gif);
     background-repeat: no-repeat;
     background-position: center right;
     cursor: pointer;
@@ -164,10 +164,10 @@ table.tablesorter tbody tr.odd td {
     background-color:#F0F0F6;
 }
 table.tablesorter thead tr .headerSortUp {
-    background-image: url(../../images/asc.gif);
+    background-image: url(../images/asc.gif);
 }
 table.tablesorter thead tr .headerSortDown {
-    background-image: url(../../images/desc.gif);
+    background-image: url(../images/desc.gif);
 }
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
 	background-color: #8dbdd8;

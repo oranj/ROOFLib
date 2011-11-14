@@ -124,14 +124,15 @@ class Form {
 		$this->cache = $this->cfg('cache');
 		$this->cacheDir = dirname(__FILE__).'/../cache/';
 
-$css = '
-	.fldValue, .fldName { vertical-align:top; padding-bottom:3px; font:12px/1.6em Arial, sans-serif; color:#333;  border-top:1px solid #efefef; }
-	.fldName { padding-right:25px; color:#7A3D00; }
+$css = "
+	.".$this->cfg('class_fieldvalue').", .".$this->cfg('class_fieldname')." { vertical-align:top; padding-bottom:3px; font:12px/1.6em Arial, sans-serif; color:#333;  border-top:1px solid #efefef; }
+	.".$this->cfg('class_fieldname')." { padding-right:25px; color:#7A3D00; }
 	table { border-collapse: collapse; }
-	.'.$this->cfg('prefix_class').'separator { font:15px/1.6em Arial, sans-serif; }
+	.".$this->cfg('prefix_class')."separator { font:15px/1.6em Arial, sans-serif; }
 	h1 { font:18px/1.6em Arial, sans-serif; margin:10px 0px 0px; font-weight:bold; }
 	a { color:#17345c; }
-';
+
+";
 
 		$this->setMailCSS($css);
 
@@ -141,13 +142,18 @@ $css = '
 
 	}
 
-	public function cfg($key) {
+	public function cfg() {
+		$keys = func_get_args();
 		global $ROOFL_Config;
-		if (isset($ROOFL_Config[$key])) {
-			return $ROOFL_Config[$key];
-		} else {
-			return NULL;
+		$node = $ROOFL_Config;
+		foreach ($keys as $key) {
+			if (isset($node[$key])) {
+				$node = $node[$key];
+			} else {
+				return NULL;
+			}
 		}
+		return $node;
 	}
 
 
@@ -162,7 +168,7 @@ $css = '
 
 	public function getIco($key, $alt = '', $title = '') {
 		if ($this->icos[$key]) {
-			return '<img border="0px" src="'.$this->cfg('web_catalog').$this->resources.$this->icos[$key].'" alt="'.htmlentities($alt).'" title="'.htmlentities($title).'" />';
+			return '<img border="0px" src="'.$this->cfg('web_catalog').$this->resources.'icons/'.$this->icos[$key].'" alt="'.htmlentities($alt).'" title="'.htmlentities($title).'" />';
 		} else {
 			return '';
 		}
@@ -213,7 +219,7 @@ $css = '
 
 
 /**
- * Struct for storing the button data. For a standard button, use "Form::BU('Submit', 'submit'), For an 'onclick' button, use "Form::BU('Text', 'foo()', 'script')", For a javascript redirect: "Form::BU('Text', 'http://url', 'link')", or For an image, use "Form::BU('button.png', 'foo', 'image')"
+ * Struct for storing the button data. For a standard button, use "Form::BU('Submit', 'submit'), For an 'onclick' button, use "Form::BU('Text', 'foo()', 'script')", For a javascript redirect: "Form::BU('Text', 'http://url', 'link')", For a sprite (auto text), use "Form::BU('Hello World', 'foo', 'sprite'), or For an image, use "Form::BU('button.png', 'foo', 'image')"
  *
  * @param String $label
  * @param String $value
@@ -279,6 +285,9 @@ $css = '
 			case 'script':
 				$html = $this->_getButtonScriptHTML($bu->label, $bu->value);
 				break;
+			case 'sprite':
+				$html = $this->_getButtonSpriteHTML($bu->label, $bu->value);
+				break;
 			case 'custom':
 				$html = $this->_getButtonCustomHTML($bu->label, $bu->value);
 				break;
@@ -320,7 +329,7 @@ $css = '
 					$action = $_GET[$name];
 					break;
 				}
-			} else if ($bu->type == 'image') {
+			} else if ($bu->type == 'image' || $bu->type == 'sprite') {
 				$name = $this->_getButtonPrefix().$bu->value.'_x';
 				if (isset($_POST[$name])) {
 					$_label = $bu->label;
@@ -420,6 +429,44 @@ $css = '
 	private function _getButtonImageHTML($url, $name='submit') {
 		return '<input name="'.$this->_getButtonPrefix().$name.'" type="image" src="'.$url.'" />';
 	}
+
+
+/**
+ * Gets the HTML for the Image Button
+ *
+ * @param String $url The location of the desired image.
+ * @param String $name The name of the image button
+ *
+ * @return String The generated HTML
+ */
+	private function _getButtonSpriteHTML($text, $name='submit') {
+		$url = $this->cfg('web_catalog').$this->cfg('dir_resources').$this->cfg('file_sprite').'?text='.urlencode($text);
+		$name = $this->_getButtonPrefix().$name;
+		$sp = $this->cfg('sprite', '__std', 'height');
+		$css = '<style type="text/css">
+			#'.$name.' {
+				overflow-y:hidden;
+				height:'.$sp.'px;
+			}
+			#'.$name.'_in {
+				cursor:pointer;
+				background-color:#ff0;
+			}
+            #'.$name.'_in:hover, #'.$name.'_in:focus {
+            	margin-top:-'.$sp.'px;
+			}
+            #'.$name.'_in:active {
+            	margin-top:-'.(2 * $sp).'px;
+			}
+	        #'.$name.'_in:disabled {
+            	margin-top:-'.(3 * $sp).'px;
+            	cursor:default;
+			}
+		</style>';
+		return preg_replace('/\s+/', ' ', $css).'<span><div id="'.$name.'"><input style="" id="'.$name.'_in" name="'.$name.'" type="image" src="'.$url.'" /></ div></span>';
+	}
+
+
 
 /**
  * Gets the HTML for the Script Button.
@@ -552,7 +599,7 @@ $css = '
 					}
 				}
 				if ($html) {
-					$html .= '<div class="error">Please correct the following error'.((sizeof($this->errors) > 1)?'s':'').': <ul>'.$html.'</ul></div>';
+					$html .= '<div class="'.$this->cfg('class_error').'">Please correct the following error'.((sizeof($this->errors) > 1)?'s':'').': <ul>'.$html.'</ul></div>';
 				}
 			}
 			if ($this->warnings) {
@@ -565,7 +612,7 @@ $css = '
 				}
 
 				if ($html) {
-					$html = '<div class="warning">Notice: <ul>'.$html.'</ul></div>';
+					$html = '<div class="'.$this->cfg('class_warning').'">Notice: <ul>'.$html.'</ul></div>';
 				}
 			}
 			$this->status_messages_printed = true;
@@ -668,12 +715,12 @@ $css = '
 									switch($value) {
 										case 'welcome':
 											if (! isset($_GET['success'])) {
-												$text .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
+												$text .= '<div class="'.$this->cfg('class_welcome').'">'.$this->welcomeMessage.'</div>';
 											}
 											break;
 										case 'note':
 											if (! isset($_GET['success'])) {
-												$text .= '<div class="noteMessage">'.$this->noteMessage.'</div>';
+												$text .= '<div class="'.$this->cfg('class_note').'">'.$this->noteMessage.'</div>';
 											}
 											break;
 										case 'status':
@@ -685,13 +732,13 @@ $css = '
 											}
 										default:
 											if (! isset($_GET['success'])) {
-												$text .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
+												$text .= '<div class="'.$this->cfg('class_welcome').'">'.$this->welcomeMessage.'</div>';
 											} else {
 												$text .= $this->onSuccess();
 											}
 											$text .= $this->print_status_messages();
 											if (! isset($_GET['success'])) {
-												$text .= ($this->noteMessage)?('<div class="noteMessage">'.$this->noteMessage.'</div>'):'';
+												$text .= ($this->noteMessage)?('<div class="'.$this->cfg('class_note').'">'.$this->noteMessage.'</div>'):'';
 											}
 											break;
 									}
@@ -883,7 +930,7 @@ $css = '
  * @return String The success message
  */
 	public function onSuccess() {
-		return '<div class="success">'.$this->successMessage.'</div>';
+		return '<div class="'.$this->cfg('class_success').'">'.$this->successMessage.'</div>';
 	}
 
 
@@ -901,19 +948,19 @@ $css = '
 		if (isset($_GET['success'])) {
 			return $this->onSuccess();
 		} else {
-			$html .= '<div class="welcome">'.$this->welcomeMessage.'</div>';
+			$html .= '<div class="'.$this->cfg('class_welcome').'">'.$this->welcomeMessage.'</div>';
 
 			$html .= $this->print_status_messages();
 
-			$html .= ($this->noteMessage)?('<div class="noteMessage">'.$this->noteMessage.'</div>'):'';
+			$html .= ($this->noteMessage)?('<div class="'.$this->cfg('class_note').'">'.$this->noteMessage.'</div>'):'';
 
 			$html .= $this->printTag();
 
-			$html .= '<'.(($nameAbove)?'div':'table').' class="form">';
+			$html .= '<'.(($nameAbove)?'div':'table').' class="'.$this->cfg('class_form').'">';
 			foreach ($this->items as $name => $item) {
 				$html .= $item->printRow(false, $nameAbove)."\n";
 			}
-			$html .= ((! $nameAbove)?('<tr class="fbu"><td></td><td>'.$this->buttonHTML.'</td></tr></table>'):('<div class="fbu">'.$this->buttonHTML.'</div></div>')).'</form>';
+			$html .= ((! $nameAbove)?('<tr class="'.$this->cfg('class_buttongroup').'"><td></td><td>'.$this->buttonHTML.'</td></tr></table>'):('<div class="'.$this->cfg('class_buttongroup').'">'.$this->buttonHTML.'</div></div>')).'</form>';
 
 			if ($this->js_files) {
 				$js = '<script type="text/javascript">';
@@ -985,7 +1032,7 @@ $css = '
 		$mail->Body = $html;
 
 		$nostyle = preg_replace('/<style(.*)\/style>/s', '', $html);
-		$spaced = preg_replace('/(class="fldName".*?\>)(.*?)(<\/)/', '$1$2   $3', $nostyle); // add spacing for the alt body.
+		$spaced = preg_replace('/(class="'.$this->cfg('class_fieldname').'".*?\>)(.*?)(<\/)/', '$1$2   $3', $nostyle); // add spacing for the alt body.
 
 		$mail->AltBody = strip_tags($spaced);
 

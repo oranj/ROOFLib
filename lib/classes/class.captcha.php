@@ -8,7 +8,7 @@
  *
  * @package ROOFLib 0.7
  */
- 
+
 require_once('class.formitem.php');
 
 class FI_Captcha extends FormItem {
@@ -25,9 +25,10 @@ class FI_Captcha extends FormItem {
  */
 
 	public function __construct($name, $label, $options = Array()) {
+		global $ROOFL_Config;
 		parent::__construct($name, $label, $options);
 		$defaultValues = Array(
-			'img_url' => "../lib/validation_png.php",
+			'img_url' => $ROOFL_Config["web_root"].$ROOFL_Config["web_catalog"].$ROOFL_Config['web_formroot'].$ROOFL_Config['dir_resources'].$ROOFL_Config['file_captcha'],
 		);
 		$this->merge($options, $defaultValues);
 	}
@@ -43,7 +44,7 @@ class FI_Captcha extends FormItem {
 
 	public static function description () {
 		return Array(
-			'img_url'=>self::DE('text', 'The path to the validation image to use', '\'../lib/validation_png.php\'')
+			'img_url'=>self::DE('text', 'The path to the validation image to use', '$ROOFL_Config["web_root"].$ROOFL_Config["web_catalog"].$ROOFL_Config["dir_resources"].$ROOFL_Config["file_captcha"]')
 		);
 	}
 

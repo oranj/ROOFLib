@@ -39,18 +39,15 @@ class FI_Email extends FI_Text {
 		if ($string || $string === '0') {
 			$matches = preg_match('/^(?:[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+\.)*[\w\!\#\$\%\&\'\*\+\-\/\=\?\^\`\{\|\}\~]+@(?:(?:(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_\-](?!\.)){0,61}[a-zA-Z0-9_-]?\.)+[a-zA-Z0-9_](?:[a-zA-Z0-9_\-](?!$)){0,61}[a-zA-Z0-9_]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$/', $string);
 			if ($matches) {
+				require_once(dirname(__FILE__).'/whois.class.php');
+
 				list($name, $domain) = split('@', $string);
-				$ip = gethostbyname($domain);
-				$nums = split('\.', $ip);
-				$fails = false;
-				if (! (($domain == 'example.com') && $FORM_DEBUG)) {
-					foreach ($nums as $num) {
-						if (! ((int)$num > 0 && (int)$num < 255)) {
-							$fail = true;
-							break;
-						}
-					}
+				$whois = new Whois();
+				$fail = false;
+				if (! $whois->ValidDomain($domain) || ($domain == 'example.com' && ! $FORM_DEBUG)) {
+					$fail = true;
 				}
+
 			} else {
 				$fail = true;
 			}

@@ -90,8 +90,14 @@ function generateString($length) {
 
 $length = 4;
 $validation_code = strtolower(generateString($length));
+#echo $validation_code;
 
-$app_top = dirname(__FILE__).'/includes/application_top.php';
+require($cfg = dirname(__FILE__).'/../config.php');
+
+chdir($ROOFL_Config['file_root'].$ROOFL_Config['web_catalog']);
+
+$app_top = 'includes/application_top.php';
+
 if (file_exists($app_top)) {
 	include_once($app_top);
 }

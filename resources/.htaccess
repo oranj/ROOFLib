@@ -1,0 +1,12 @@
+# This is a terrible lung chunking hack. It will give you cancer, hacking this bad.
+<Files ~ "\.*$">
+	Order deny,allow
+	Allow From All
+</Files>
+
+
+RewriteEngine on
+
+# https://test.ecreativeworks.com/_base_apps/forms_rm/unstable/resources/validation.png
+# @TODO: Make validation_png.php 301 to validation.png
+RewriteRule validation\.php validation_png.php

@@ -41,7 +41,7 @@ $form->addItem(new FI_Textarea('message', 'Comments, questions or details'));
 
 $form->addItem(new FI_File('file', 'Upload a document', Array('maxFiles'=>5, 'allowMultiple'=>true)));
 
-$form->addItem(new FI_Captcha('captcha', 'Are you human?', Array('img_url'=>'../lib/validation_png.php'.($firstname->value()?'?name='.$firstname->value():''))));
+$form->addItem(new FI_Captcha('captcha', 'Are you human?'));
 
 $form->setButtons(Form::BU('Send', 'send'));
 
@@ -81,7 +81,7 @@ background-image: -moz-linear-gradient(
 		background: -o-radial-gradient(50% 50%, ellipse closest-side, #666 0%,#111 100%);
 		background: -ms-radial-gradient(50% 50%, ellipse closest-side, #666 0%,#111 100%);
 		background: -webkit-gradient(radial, 50% 50%, 0, 40% 40%, 60 from (#666), to (#111));
-		background: radial-gradient(50% 50%, ellipse closest-side, #666 0%,#111 100%);		
+		background: radial-gradient(50% 50%, ellipse closest-side, #666 0%,#111 100%);
 		opacity:0.8; position:fixed; top:0px; left:0px;
 
 	}
@@ -91,17 +91,18 @@ background-image: -moz-linear-gradient(
 	.fi_icon { float:left; padding:2px; }
 	.fi_close { float:right; padding:2px; }
 
-	.form, .noteMessage, .welcome, .success, .rf_error, .rf_warning { font-family:Arial, sans-serif; font-size:12px;}
+	.rf_form, .rf_note, .rf_welcome, .rf_success, .rf_error, .rf_warning { font-family:Arial, sans-serif; font-size:12px;}
 
 	h1, .sepLabel { border-bottom:1px solid #ccc; color:#17345C; font-family:Arial, sans-serif; }
 
 	.sepLabel {  font-weight:bold; padding-top:20px; font-size:14px; text-transform:uppercase; }
-	.rf_name { font-weight:bold; padding-top:10px; }
+	.rf_name, .rff_name { font-weight:bold; padding-top:5px; margin-top:10px; vertical-align:top; border-bottom:1px solid #ccc; }
+	.rf_value { padding-top:5px; vertical-align:top; }
 
 
 	#rfi_stateprovince select { width:200px; }
 	#rfi_postal input { width: 140px;   }
-	.fbu  { padding-top:10px; }
+	.rf_fbu  {clear:both; padding-top:10px; }
 
 	textarea { width: 350px; height:150px; }
 
@@ -116,14 +117,15 @@ background-image: -moz-linear-gradient(
 	}
 
 	.rf_req { color:#c00; font-weight:bold;  }
-	.noteMessage { font-style:italic; }
+	.rf_note { font-style:italic; font-weight:normal; }
 
-	.rf_name .descr { font-style:italic; }
+	.rf_value .rf_desc { font-style:italic; font-weight:normal;  }
+	.rf_name .rf_desc { font-style:italic; font-weight:normal; }
 	.rf_success { background-color:#D6EBFF; padding:25px; border:1px solid #99CCFF; color:#000; font-weight:bold; }
 	.rf_error { background-color:#FFCCCC; padding:5px; border:1px solid #FF0000; color:#c00; font-weight:bold; }
 	.rf_error ul, .rf_warning ul { margin:5px 0px; color:#000; }
 	.rf_error li, .rf_warning li { font-weight:normal; }
-	.warning { background-color:#FFFFCC; padding:5px; border:1px solid #CC9900; color:#000; font-weight:bold; }
+	.rf_warning { background-color:#FFFFCC; padding:5px; border:1px solid #CC9900; color:#000; font-weight:bold; }
 
 	/* Round */
 	#rfi_captcha, .rf_warning, .rf_error, .rf_success {

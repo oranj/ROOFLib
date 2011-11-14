@@ -3,9 +3,9 @@
 $config = array();
 
 $config['forms'] = array(
-	'contact' => array('file'=>'contact.php','db'=>'contact','name'=>'Contact Us'),
-	'sample1' => array('file'=>'sample1.php','db'=>'sample_1','name'=>'Sample 1'),
-	'survey' => array('file'=>'survey.php','db'=>'survey','name'=>'Survey'),
+	'contact' => array('file'=>'forms/contact_us.php','db'=>'contact','name'=>'Contact Us'),
+	'request' => array('file'=>'forms/request_for_quote.php','db'=>'request','name'=>'Request for Quote'),
+	'survey' => array('file'=>'forms/survey.php','db'=>'survey','name'=>'Survey'),
 );
 
 $config['remote_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/';

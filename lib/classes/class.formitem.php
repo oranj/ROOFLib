@@ -358,7 +358,7 @@ function popDown() {
  * @return String the label
  */
 	public function label() {
-		return $this->label.($this->desc_in_label?$this->printDescription():'');
+		return $this->label;
 	}
 
 
@@ -430,7 +430,7 @@ function popDown() {
 			
 			if ($messages) { $messages = (($message_td?'<td ':'<div ').' class="'.$this->cfg('class_fieldmessages').'">'.$messages.'</'.($message_td?'td>':'div>')); }
 			if ($nameAbove) {
-				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="'.$this->cfg('class_fieldname').'">'.$this->label().$this->printRequired().$this->printHelp().'</div>')).'<div class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</div>'.$messages.'</div>';
+				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="'.$this->cfg('class_fieldname').'">'.$this->label().$this->printRequired().$this->printHelp().$this->printDescription().'</div>')).'<div class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</div>'.$messages.'</div>';
 			} else {
 				return '<tr '.$this->attrString().'><td class="'.$this->cfg('class_fieldname').'">'.($this->hide_label?'':($this->label().$this->printRequired().$this->printHelp().'</div>')).'</td><td class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().($message_td?('</td>'.$messages):($messages.'</td>')).'</tr>';
 			}

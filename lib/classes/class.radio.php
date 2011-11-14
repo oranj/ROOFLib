@@ -30,9 +30,7 @@ class FI_Radio extends FormItem {
 		$defaultValues = Array(
 			'options' => Array(),
 			'label_left' => false,
-			'other' => false,
-			'other_label' => 'Other',
-			'other_name' => 'rf_other',
+			'others' => Array(),
 		);
 
 		$this->merge($options, $defaultValues);
@@ -47,7 +45,7 @@ class FI_Radio extends FormItem {
 		if (isset($_POST[$this->name()])) {
 			$this->selected = $this->options[$_POST[$this->name()]];
 		} else {
-			$this->selected = reset($this->options);
+			$this->selected = NULL;//reset($this->options);
 		}
 	}
 
@@ -63,8 +61,7 @@ class FI_Radio extends FormItem {
 	public static function description () {
 		return Array(
 			'options'=>self::DE('Array', 'The list of available options', 'Array()'),
-			'other'=>self::DE('bool', 'Whether or not to display an "other" field', 'false'),
-			'other_label'=>self::DE('Array', 'The default "Other" label', '"Other"'),
+   			'others'=>self::DE('Array', 'List of options with string compoments', 'Array()'),
 			'label_left'=>self::DE('bool', 'Make the labels appear to the left of the radio', 'false'),
 		);
 	}
@@ -93,10 +90,15 @@ class FI_Radio extends FormItem {
 			$this->selected = $this->options[$input];
 		} else {
 			if ($_POST) {
-				if ($this->other && ($_POST[$this->name] == $this->other_name)) {
-					$this->selected = "[".$this->other_label."] ".$_POST[$this->name().'_other'];
-				} else {
-					$this->selected = $_POST[$this->name()];
+				foreach ($this->others as $name => $value) {
+					$other_name = $this->name().'_'.$name;
+					if (isset($_POST[$other_name])) {
+						$this->selected = Array('name'=>$name, 'label'=>$value, 'value'=>$_POST[$other_name]);
+					}
+				}
+
+				if (! $this->selected) {
+					$this->selected = isset($_POST[$this->name()])?$_POST[$this->name()]:NULL;
 				}
 			}
 			return $this->selected;
@@ -110,7 +112,11 @@ class FI_Radio extends FormItem {
  * @param DatabaseForm $form The DatabaseForm
  */
 	public function addToDB(&$dbForm) {
-		$dbForm->addItem($dbForm->dbName($this->label), $this->value());
+		$value = $this->value();
+		if (is_array($value)) {
+			$value = $value['label'].':: '.$value['value'];
+		}
+		$dbForm->addItem($dbForm->dbName($this->label), $value);
 	}
 
 
@@ -129,10 +135,15 @@ class FI_Radio extends FormItem {
 			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $value)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.$value.'"/>';
 			$html .= '<div class="radio">'.($this->label_left?($label.$input):($input.$label)).'</div>';
 		}
-		if ($this->other) {
-			$id = $this->name().'_other';
-			$label = '<label for="'.$id.'">'.$this->other_label.' <input name="'.$id.'" value="'.$vaue.'" /></label>';
-			$input = '<input type="radio" id="'.$id.'"  '.(($selected_value == $value)?(' checked="checked" '):('')).'name="'.$this->name.'" value="'.htmlentities($this->other_name).'"/>';
+		foreach ($this->others as $key => $label) {
+			$id = $this->name().'_'.$key;
+			if (is_array($selected_value) && $selected_value['name'] == $key) {
+				$label = '<label for="'.$id.'">'.$label.' </label><input onclick="document.getElementById(\''.$id.'\').checked = true;" name="'.htmlentities($id).'" value="'.htmlentities($selected_value['value']).'" />';
+				$input = '<input type="radio" id="'.$id.'" checked="checked" name="'.$this->name.'" value="'.htmlentities($id).'"/>';
+			} else {
+				$label = '<label for="'.$id.'">'.$label.' </label><input onclick="document.getElementById(\''.$id.'\').checked = true;" name="'.htmlentities($id).'" value="" />';
+				$input = '<input type="radio" id="'.$id.'" name="'.$this->name.'" value="'.htmlentities($id).'"/>';
+			}
 			$html .= '<div class="radio">'.($this->label_left?($label.$input):($input.$label)).'</div>';
 		}
 		$html .= $this->printPost();
@@ -160,6 +171,9 @@ class FI_Radio extends FormItem {
  */
 	public function printEmail() {
 		$html = $this->value();
+		if (is_array($html)) {
+			$html = '<em>'.$html['label'].':</em> '.$html['value'];
+		}
 		return $html;
 	}
 }

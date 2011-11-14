@@ -444,7 +444,7 @@ class FI_File extends FormItem {
 		$value = $this->value();
 
 		if ($value['added']) {
-			function get_name($file) { return $file['name']; }
+			if(! function_exists('get_name')) { function get_name($file) { return $file['name']; } }
 			$names = array_map('get_name', $value['added']);
 			return '<em>'.join('</em><br/><em>', $names).'</em>';
 		} else {
