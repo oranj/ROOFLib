@@ -5,7 +5,7 @@
 global $ROOFL_Config;
 
 $ROOFL_Config = Array(
-	'file_root'				=> dirname(__FILE__).'/',
+	'file_root'				=> $_SERVER[DOCUMENT_ROOT],
 	'web_root'				=> 'http://'.$_SERVER['HTTP_HOST'],
 	'web_catalog'			=> '/_base_apps/forms_rm/unstable/',
 	'web_formroot'			=> '',

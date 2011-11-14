@@ -85,8 +85,8 @@ class FI_Captcha extends FormItem {
  */
 	public function check(&$errors, &$warnings, &$continue) {
 		global $FORM_DEBUG;
-		if (! isset($_SESSION) || ! $_SESSION['security_code'] || $_SESSION['security_code'] != strtolower($this->value())) {
-			$errors [] = Form::ME('error', 'There seems to be a problem with your security code'.(($FORM_DEBUG)?(strtolower(' ("'.$this->value()).'" vs "'.$_SESSION['security_code'].'")'):''), $this);
+		if (! isset($_SESSION) || ! isset($_SESSION['security_code']) || $_SESSION['security_code'] != strtolower($this->value())) {
+			$errors [] = Form::ME('error', 'There seems to be a problem with your security code'.(($this->cfg('debug'))?(strtolower(' ("'.$this->value()).'" vs "'.(isset($_SESSION['security_code'])?($_SESSION['security_code']):'<em>No Data</em>').'")'):''), $this);
 		} else {
 			$warnings [] = Form::ME('warning', 'Please re-enter the security code', $this);
 		}

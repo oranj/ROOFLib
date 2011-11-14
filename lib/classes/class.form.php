@@ -122,7 +122,7 @@ class Form {
 		);
 
 		$this->cache = $this->cfg('cache');
-		$this->cacheDir = dirname(__FILE__).'/../cache/';
+		$this->cacheDir = self::cfg('file_root').self::cfg('web_formroot').self::cfg('dir_cache');
 
 $css = "
 	.".$this->cfg('class_fieldvalue').", .".$this->cfg('class_fieldname')." { vertical-align:top; padding-bottom:3px; font:12px/1.6em Arial, sans-serif; color:#333;  border-top:1px solid #efefef; }
@@ -142,7 +142,7 @@ $css = "
 
 	}
 
-	public function cfg() {
+	public static function cfg() {
 		$keys = func_get_args();
 		global $ROOFL_Config;
 		$node = $ROOFL_Config;
@@ -168,7 +168,7 @@ $css = "
 
 	public function getIco($key, $alt = '', $title = '') {
 		if ($this->icos[$key]) {
-			return '<img border="0px" src="'.$this->cfg('web_catalog').$this->resources.'icons/'.$this->icos[$key].'" alt="'.htmlentities($alt).'" title="'.htmlentities($title).'" />';
+			return '<img border="0px" src="'.$this->cfg('web_catalog').$this->cfg('web_formroot').$this->cfg('dir_resources').'icons/'.$this->icos[$key].'" alt="'.htmlentities($alt).'" title="'.htmlentities($title).'" />';
 		} else {
 			return '';
 		}
@@ -217,6 +217,12 @@ $css = "
 		$this->successMessage = $message;
 	}
 
+	public static function get_data($key) {
+		$filepath = self::cfg('file_root').self::cfg('web_catalog').self::cfg('web_formroot').self::cfg('dir_data').$key.'.php';
+		require_once($filepath);
+		$data = $key();
+		return $data;
+	}
 
 /**
  * Struct for storing the button data. For a standard button, use "Form::BU('Submit', 'submit'), For an 'onclick' button, use "Form::BU('Text', 'foo()', 'script')", For a javascript redirect: "Form::BU('Text', 'http://url', 'link')", For a sprite (auto text), use "Form::BU('Hello World', 'foo', 'sprite'), or For an image, use "Form::BU('button.png', 'foo', 'image')"
@@ -440,7 +446,7 @@ $css = "
  * @return String The generated HTML
  */
 	private function _getButtonSpriteHTML($text, $name='submit') {
-		$url = $this->cfg('web_catalog').$this->cfg('dir_resources').$this->cfg('file_sprite').'?text='.urlencode($text);
+		$url = $this->cfg('web_catalog').$this->cfg('web_formroot').$this->cfg('dir_resources').$this->cfg('file_sprite').'?text='.urlencode($text);
 		$name = $this->_getButtonPrefix().$name;
 		$sp = $this->cfg('sprite', '__std', 'height');
 		$css = '<style type="text/css">
@@ -614,6 +620,9 @@ $css = "
 				if ($html) {
 					$html = '<div class="'.$this->cfg('class_warning').'">Notice: <ul>'.$html.'</ul></div>';
 				}
+			}
+			if ($this->cfg('debug')) {
+				$html .= '<div class="'.self::cfg('class_warning').'"><em>DEBUG MODE</em> is enabled. Disable this in <em>'.self::cfg('file_root').self::cfg('web_formroot').'config.php</em></div>';
 			}
 			$this->status_messages_printed = true;
 		}
@@ -999,6 +1008,45 @@ $css = "
 			$html .= '<style>'.$this->mailCSS.'</style>';
 		}
 		return $html;
+	}
+
+	public function sendHTMLEmail($subject, $fromAddress, $fromName, $html, $to, $replyTo=Array(), $cc=Array(), $bcc = Array()) {
+
+		$mail = new PHPMailer();
+		$mail->isHTML(false);
+
+		$mail->Subject = $subject;
+		$mail->Body = $html;
+
+		$nostyle = preg_replace('/<style(.*)\/style>/s', '', $html);
+		$spaced = preg_replace('/(class="'.$this->cfg('class_fieldname').'".*?\>)(.*?)(<\/)/', '$1$2   $3', $nostyle); // add spacing for the alt body.
+
+		$mail->AltBody = strip_tags($spaced);
+
+		$mail->From = $fromAddress; // the email field of the form
+		$mail->FromName = $fromName; // the name field of the form
+
+		if (is_array($to)) {
+			foreach ($to as $name => $email) {
+				$mail->AddAddress($email, $name);
+			}
+		} else {
+			$mail->AddAddress($to);
+		}
+
+		foreach ($replyTo as $name => $email) {
+			$mail->AddReplyTo($email, $name);
+		}
+
+		foreach ($cc as $name => $email) {
+			$mail->AddCC($email, $name);
+		}
+
+		foreach ($bcc as $name => $email) {
+			$mail->AddBCC($email, $name);
+		}
+
+		$mail->Send();
 	}
 
 

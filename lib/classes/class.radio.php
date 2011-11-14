@@ -43,9 +43,9 @@ class FI_Radio extends FormItem {
  */
 	protected function _update_selected() {
 		if (isset($_POST[$this->name()])) {
-			$this->selected = $this->options[$_POST[$this->name()]];
+			$this->selected = $_POST[$this->name()];
 		} else {
-			$this->selected = NULL;//reset($this->options);
+			$this->selected = NULL;
 		}
 	}
 
@@ -173,6 +173,8 @@ class FI_Radio extends FormItem {
 		$html = $this->value();
 		if (is_array($html)) {
 			$html = '<em>'.$html['label'].':</em> '.$html['value'];
+		} else {
+			$html = $this->options[$html];
 		}
 		return $html;
 	}

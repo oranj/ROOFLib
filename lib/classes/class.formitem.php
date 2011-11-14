@@ -65,7 +65,7 @@ abstract class FormItem {
 			$this->validators = Array($this->validators);
 		}
 	}
-	
+
 	public function cfg($key) {
 		global $ROOFL_Config;
 		if (isset($ROOFL_Config[$key])) {
