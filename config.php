@@ -10,6 +10,7 @@ $ROOFL_Config = Array(
 	'web_catalog'			=> '/_base_apps/forms_rm/unstable/',
 	'web_formroot'			=> '',
 
+	'debug'					=> true,
 
 	'dir_uploads' 			=> 'uploads/',
 	'dir_cache'				=> 'cache/',

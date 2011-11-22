@@ -128,6 +128,26 @@ class FI_Select extends FormItem {
 	}
 
 
+ /**
+ * Recursively renders a tree of optgroups and options for the select
+ *
+ * @param Array $tree The tree of options, when the value is an array, render that array as an optgroup with the key being the label, otherwise render as an option.
+ * @param String $selected_value The value ($key) of the selected option.
+ *
+ * @return String The HTML for the options.
+ */
+	private function printGroup($tree, $selected_value = '') {
+		$html = '';
+		foreach ($tree as $key => $value) {
+			if (is_array($value)) {
+				$html .= "\t".'<optgroup label="'.htmlentities($key).'">'.$this->printGroup($value, $selected_value).'</optgroup>'."\n";
+			} else {
+				$html .= "\t".'<option '.(((string)$selected_value === (string)$value)?' selected="selected"':'').' value="'.$key.'">'.$value.'</option>'."\n";
+			}
+		}
+		return $html;
+	}
+
 /**
  * Prints the FormItem for the Form
  *
@@ -141,10 +161,8 @@ class FI_Select extends FormItem {
 			$id = $this->name().'_'.$this->default;
 			$html .= "\t".'<option '.(((string)$selected_value === (string)$this->default)?' selected="yes"':'').' value="'.$this->default.'">'.$this->default_string.'</option>'."\n";
 		}
-		foreach ($this->options as $value => $label) {
-			$id = $this->name().'_'.$value;
-			$html .= "\t".'<option '.(((string)$selected_value === (string)$value)?' selected="yes"':'').' value="'.$value.'">'.$label.'</option>'."\n";
-		}
+		$html .= $this->printGroup($this->options, $selected_value);
+
 		$html .= '</select>'.$this->printPost();
 		if ($this->description) {
 			$html .= '<div class="descr">'.$this->description.'</div>';
@@ -152,6 +170,7 @@ class FI_Select extends FormItem {
 
 		return $html;
 	}
+
 
 /**
  * Prints the FormItem for Email

@@ -2,14 +2,18 @@
 
 #error_reporting(E_ALL);
 
-require_once(dirname(__FILE__).'/../lib/classes/class.form.php');
-require_once(dirname(__FILE__).'/../lib/data/statesprovinces.php');
-require_once(dirname(__FILE__).'/../lib/data/countries.php');
+require_once(dirname(__FILE__).'/../roofl.php');
+
+
 
 mysql_connect('localhost', 'ecw', 'dbman');
 mysql_select_db('ecw_newforms_base');
 
 $form = new Form('contact');
+
+$STATESPROVINCES = $form->get_data('statesprovinces');
+$COUNTRIES = $form->get_data('countries');
+
 $form->required_attr = false;
 
 #$form->addItem(new FI_Flip('year', 'Year:', array('options'=>range(1990, 2021), 'inc_text'=>'', 'dec_text'=>'')));

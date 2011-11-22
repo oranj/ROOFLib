@@ -9,8 +9,6 @@
  * @package ROOFLib 0.7
  */
 
-$FORM_DEBUG = false;
-
 if (! function_exists('dump')) {
 	function dump($var, $return = false) {
 		$str = "<pre>".htmlentities(print_r($var, true))."</pre>";
@@ -622,7 +620,7 @@ $css = "
 				}
 			}
 			if ($this->cfg('debug')) {
-				$html .= '<div class="'.self::cfg('class_warning').'"><em>DEBUG MODE</em> is enabled. Disable this in <em>'.self::cfg('file_root').self::cfg('web_formroot').'config.php</em></div>';
+				$html .= '<div class="'.self::cfg('class_warning').'"><em>DEBUG MODE</em> is enabled. Disable this in <em>'.self::cfg('file_root').self::cfg('web_catalog').self::cfg('web_formroot').'config.php</em></div>';
 			}
 			$this->status_messages_printed = true;
 		}
