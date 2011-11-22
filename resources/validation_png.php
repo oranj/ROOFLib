@@ -13,8 +13,9 @@
 function generateValidationImage($rand) {
 		$width = 150;
 		$height = 40;
-		$font = realpath('.') .'/fonts/BoinkStd.otf';
-		$font2 = realpath('.') .'/fonts/SG04.ttf';
+		$fontSize = '12';
+		$font = dirname(__FILE__) .'/fonts/BoinkStd.otf';
+		$font2 = dirname(__FILE__) .'/fonts/SG04.ttf';
 		$reduceReadability = 0;
 		$image = imagecreatetruecolor($width, $height);
 		imageantialias($image,true);

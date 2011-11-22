@@ -5,7 +5,7 @@
 global $ROOFL_Config;
 
 $ROOFL_Config = Array(
-	'file_root'				=> $_SERVER[DOCUMENT_ROOT],
+	'file_root'				=> $_SERVER['DOCUMENT_ROOT'],
 	'web_root'				=> 'http://'.$_SERVER['HTTP_HOST'],
 	'web_catalog'			=> '/_base_apps/forms_rm/unstable/',
 	'web_formroot'			=> '',
@@ -22,6 +22,7 @@ $ROOFL_Config = Array(
 	'prefix_class'			=> 'rfc_',
 
 	'class_form'			=> 'rf_form',
+	'class_formitem'		=> 'rf_fi',
 	'class_required'		=> 'rf_cr',
 	'class_buttongroup'		=> 'rf_fbu',
 	'class_not_required'	=> 'rf_cn',

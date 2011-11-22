@@ -58,6 +58,7 @@ abstract class FormItem {
 
 
 		$this->attr('id', 		$this->cfg('prefix_id').strtolower($this->name()));
+		$this->attr('class', 	$this->cfg('class_formitem'));
 		$this->attr('class', 	$this->cfg('prefix_class').strtolower($this->getType()));
 		$this->attr('class',	($this->required)?$this->cfg('class_required'):$this->cfg('class_not_required'));
 
@@ -425,9 +426,9 @@ function popDown() {
 			}
 		} else {
 			$messages = ($this->message_inline || $this->form->message_inline)?$this->printMessages():'';
-			
+
 			$message_td = (! $nameAbove && ! $this->form->messages_underneath);
-			
+
 			if ($messages) { $messages = (($message_td?'<td ':'<div ').' class="'.$this->cfg('class_fieldmessages').'">'.$messages.'</'.($message_td?'td>':'div>')); }
 			if ($nameAbove) {
 				return '<div '.$this->attrString().'>'.($this->hide_label?'':('<div class="'.$this->cfg('class_fieldname').'">'.$this->label().$this->printRequired().$this->printHelp().$this->printDescription().'</div>')).'<div class="'.$this->cfg('class_fieldvalue').'">'.$this->printForm().'</div>'.$messages.'</div>';

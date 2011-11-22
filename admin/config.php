@@ -9,12 +9,12 @@ $config['forms'] = array(
 );
 
 $config['remote_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/';
-$config['local_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '/_base_apps/forms_rm/forms_rm/';
+$config['local_url'] = 'http://' . $_SERVER['SERVER_NAME'] . '';
 
 $config['database_host'] = 'localhost';
-$config['database_user'] = 'ecw';
-$config['database_pass'] = 'dbman';
-$config['database_base'] = 'ecw_newforms_base';
+$config['database_user'] = 'user';
+$config['database_pass'] = 'pass';
+$config['database_base'] = 'base';
 
 $config['results_per_page'] = 20;
 $config['admin_user'] = 'admin';
