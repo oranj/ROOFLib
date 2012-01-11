@@ -1,7 +1,5 @@
 <?php
 
-#error_reporting(E_ALL);
-
 require_once(dirname(__FILE__).'/../roofl.php');
 
 
@@ -9,45 +7,34 @@ require_once(dirname(__FILE__).'/../roofl.php');
 mysql_connect('localhost', 'ecw', 'dbman');
 mysql_select_db('ecw_newforms_base');
 
-$form = new Form('contact');
+$form = Form::create('contact')
+	->setSuccessMessage('Success!')
+	->set('required_attr', false)
+	
+	->addSeparator('Contact Information', array('separator'=>'', 'help'=>'<strong>Your information is safe with us!</strong><p>We will not distribute any personal information we receive from you.</p>'))
+	->requireText('firstname', 'First Name')
+	->requireText('lastname', 'Last Name')
+	->addText('company', 'Company')
+	->requireEmail('email', 'Email')
+	->requirePhone('phone', 'Telephone Number')
+	->addPhone('fax', 'Fax Number')
+	->addDate('birthday', 'Birthday')
 
-$STATESPROVINCES = $form->get_data('statesprovinces');
-$COUNTRIES = $form->get_data('countries');
+	->addSeparator('Location', array('separator'=>''))
+	->addText('address1', 'Street Address')
+	->addText('address2', 'Address 2', array('hide_label'=>true))
+	->addText('city', 'City')
+	->requireSelect('stateprovince', 'State / Province', array('options' => Form::getData('statesprovinces')))
+	->addText('postal', 'Zip / Postal Code')
+	->requireSelect('country', 'Country', array('options'=>Form::getData('countries')))
 
-$form->required_attr = false;
+	->addSeparator('Message', Array('separator'=>''))
+	->addTextarea('message', 'Comments, questions, or details')
 
-#$form->addItem(new FI_Flip('year', 'Year:', array('options'=>range(1990, 2021), 'inc_text'=>'', 'dec_text'=>'')));
-$form->setSuccessMessage('Success!');
+	->addFile('file', 'Upload a document', Array('maxFiles' => 5, 'allowMultiple' => true))
+	->addCaptcha('Are you human?')
+	->setButtons(Form::BU('Send', 'send'));
 
-$form->addItem(new FI_Separator('yearsep', 'Contact Information', array('separator'=>'', 'help'=>'<strong>Your information is safe with us!</strong><p>We will not distribute any personal information we receive from you.</p>')));
-
-
-$form->addItem($firstname = new FI_Text('firstname', 'First Name', array('required'=>true)));
-$form->addItem(new FI_Text('lastname', 'Last Name', array('required'=>true)));
-$form->addItem(new FI_Text('company', 'Company'));
-$form->addItem(new FI_Email('email', 'Email', array('required'=>true)));
-$form->addItem(new FI_Phone('phone', 'Telephone Number', array('required'=>true)));
-$form->addItem(new FI_Phone('fax', 'Fax Number'));
-
-
-
-$form->addItem(new FI_Separator('locationsep', 'Location', array('separator'=>'')));
-$form->addItem(new FI_Text('address1', 'Street Address'));
-$form->addItem(new FI_Text('address2', 'Address 2', array('hide_label'=>true)));
-$form->addItem(new FI_Text('city', 'City'));
-$form->addItem(new FI_Select('stateprovince', 'State / Province', array('options'=>$STATESPROVINCES, 'required'=>true)));
-$form->addItem(new FI_Text('postal', 'Zip  / Postal Code'));
-$form->addItem(new FI_Select('country', 'Country', array('options'=>$COUNTRIES, 'required'=>true)));
-
-
-$form->addItem(new FI_Separator('messagesep', 'Message', array('separator'=>'')));
-$form->addItem(new FI_Textarea('message', 'Comments, questions or details'));
-
-$form->addItem(new FI_File('file', 'Upload a document', Array('maxFiles'=>5, 'allowMultiple'=>true)));
-
-$form->addItem(new FI_Captcha('captcha', 'Are you human?'));
-
-$form->setButtons(Form::BU('Send', 'send'));
 
 if ($form->action() && $form->validate()) {
 	$form->storeEntry();
@@ -140,7 +127,7 @@ background-image: -moz-linear-gradient(
 	}
 
 	/* Clear lefts */
-	#rfi_country, .fbu, #rfi_email, .sepLabel, #rfi_company { clear: left; }
+	#rfi_country, .fbu, #rfi_email, .sepLabel, #rfi_birthday, #rfi_company { clear: left; }
 
 	/* Float lefts */
 	#rfi_postal, #rfi_stateprovince, #rfi_firstname, #rfi_lastname, #rfi_phone, #rfi_fax { float:left;  }
@@ -148,8 +135,8 @@ background-image: -moz-linear-gradient(
 	#rfi_stateprovince, #rfi_firstname, #rfi_phone { margin-right:10px;  }
 
 	/* Full width inputs */
-	#rfi_email input, #rfi_address1 input, #rfi_address2 input, #rfi_country select, #rfi_city input, #rfi_company input { width:350px; }
-	#rfi_email, #rfi_country, #rfi_captcha { width:350px; }
+	#rfi_email input, #rfi_birthday input, #rfi_address1 input, #rfi_address2 input, #rfi_country select, #rfi_city input, #rfi_company input { width:350px; }
+	#rfi_email, #rfi_country, #rfi_captcha #rfi_birthday { width:350px; }
 
 	/* half widths */
 	#rfi_firstname input, #rfi_lastname input, #rfi_phone input, #rfi_fax input { width:170px; }

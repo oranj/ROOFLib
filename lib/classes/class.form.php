@@ -44,8 +44,11 @@ $FORMITEMS = Array(
 	'Toggle' => 'Allows the user to switch between different Form Items, disabling all non selected options. Advanced functionality',
 );
 
+$__fi_strclass = Array();
+
 foreach ($FORMITEMS as $filename => $description) {
 	$class = (($filename == 'FormItem')?'':'FI_').$filename;
+	$__fi_strclass[strtolower($filename)] = $class;
 	require_once(dirname(__FILE__).'/class.'.strtolower($filename).'.php');
 }
 
@@ -86,6 +89,11 @@ class Form {
 	protected $mailCSS;
 	protected $useFormat;
 
+	protected $anonymousCounts;
+
+	static public function create($name) {
+		return new Form($name);
+	}
 
 /**
  * Creates a Form- the main element when using ROOFLib
@@ -108,6 +116,8 @@ class Form {
 		$this->setButtons(self::BU('Submit', 'submit'));
 		$this->resources = $this->cfg('dir_resources');
 		$this->messages_underneath = true;
+
+		$this->anonymousCounts = Array();
 
 		$this->js_files = Array();
 		$this->js_dir = dirname(__FILE__).'/../js/';
@@ -205,6 +215,32 @@ $css = "
 		}
 	}
 
+	/**
+	* Prints the form- alias for printForm(); 
+	*/	
+	
+	public function __toString() {
+		return $this->printForm();
+	}
+
+	/**
+	*  This function allows us dynamic function naming schemes- add{FI_Class}, and require{FI_Class}, 
+	*  where {FI_Class} is the class name, such as Text or Select, NOT FI_Text or FI_Select
+	*/
+	public function __call($func, $args) {
+
+		if (preg_match('/add([a-z_]+)/i', $func, $matches)) {
+			array_unshift($args, $matches[1]);
+			return $this->addItem($args);
+		} else if (preg_match('/require([a-z_]+)/i', $func, $matches)) {
+			@list($name, $label, $params) = $args;
+			$params['required'] = true;
+			$args = Array($matches[1], $name, $label, $params);
+			return $this->addItem($args);
+			
+		}	
+	}
+
 
 /**
  * Sets the message to be displayed on form success
@@ -213,9 +249,10 @@ $css = "
  */
 	public function setSuccessMessage($message) {
 		$this->successMessage = $message;
+		return $this;
 	}
 
-	public static function get_data($key) {
+	public static function getData($key) {
 		$filepath = self::cfg('file_root').self::cfg('web_catalog').self::cfg('web_formroot').self::cfg('dir_data').$key.'.php';
 		require_once($filepath);
 		$data = $key();
@@ -273,6 +310,7 @@ $css = "
 			$this->buttonHTML .= $this->getButtonHTML($bu);
 			$this->postActions[$bu->value] = $bu;
 		}
+		return $this;
 	}
 
 	private function getButtonHTML($bu) {
@@ -309,6 +347,14 @@ $css = "
  */
 	public function setAttribute($name, $attribute) {
 		$this->attributes[$name] = $attribute;
+	}
+	
+	/**
+	 * General purpose setter to use with chaining.
+	 */ 
+	public function set($name, $value) {
+		$this->$name = $value;
+		return $this;
 	}
 
 
@@ -541,6 +587,7 @@ $css = "
  */
 	public function setWelcomeMessage($message) {
 		$this->welcomeMessage = $message;
+		return $this;
 	}
 
 
@@ -551,6 +598,7 @@ $css = "
  */
 	public function setNoteMessage($note) {
 		$this->noteMessage = $note;
+		return $this;
 	}
 
 
@@ -829,13 +877,61 @@ $css = "
 		return $format;
 	}
 
+/**
+ * Creates a name for an unnamed form item based off of the class
+ */
+	private function generateAnonymousName($class) {
+		if (! isset($this->anonymousCounts[$class])) {
+			$this->anonymousCounts[$class] = 0;
+		} else {
+			$this->anonymousCounts[$class]++;
+		}
+
+		$anonymousName = 'u'.str_replace('FI_', '', ucwords($class)).$this->anonymousCounts[$class];
+		return $anonymousName;
+	}
 
 /**
  * Adds an item to the form
  *
- * @param FormItem $formItem The item to add to the form
+ * @param mixed $formItem The item to add to the form. If it is a string, treats it as the class name, if array, treat the indexes as the function arguments
  */
-	public function addItem($formItem) {
+	public function addItem($formItem, $name = NULL, $label = NULL, $params = NULL) {
+		
+		if (is_array($formItem)) {
+			@list($formItem, $arg1, $arg2, $arg3) = $formItem;
+		}
+	
+		if (is_string($formItem)) {
+			global $__fi_strclass;
+			$class = $__fi_strclass[strtolower($formItem)];
+
+			if (is_array($arg1)) {
+				$params = $arg1;
+				$name = '';
+				$label = '';
+			} else if (is_array($arg2)) {
+				$params = $arg2;
+				$label = $arg1;
+				$name = '';
+			} else if (is_null ($arg2)) {
+				$name = '';
+				$label = $arg1;
+				$params = Array();
+			} else  {
+				$name = $arg1;
+				$label = $arg2;
+				$params = $arg3;
+			}
+
+
+			if (! $name) {
+				$name = $this->generateAnonymousName($class);
+			}
+
+			$formItem = new $class($name, $label, $params);
+		} 
+		
 		if ($this->hasItem($formItem->name())) {
 			// Duplicate names- throw an error-> names MUST be unique
 			return false;
@@ -847,8 +943,8 @@ $css = "
 		$this->attributes = array_merge($this->attributes, $formItem->formAttributes());
 		$this->items[$formItem->name()] = $formItem;
 		$formItem->setForm($this);
+		return $this;
 	}
-
 
 
 /**

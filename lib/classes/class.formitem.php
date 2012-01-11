@@ -324,7 +324,7 @@ function popDown() {
  */
 	public function printPost() {
 		if ($this->post) {
-			return '<span class="'.$this->cfg('class_pre').'">'.$this->post.'</span>';
+			return '<span class="'.$this->cfg('class_post').'">'.$this->post.'</span>';
 		}
 		return '';
 	}

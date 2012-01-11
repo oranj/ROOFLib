@@ -10,7 +10,7 @@ $ROOFL_Config = Array(
 	'web_catalog'			=> '/_base_apps/forms_rm/unstable/',
 	'web_formroot'			=> '',
 
-	'debug'					=> true,
+	'debug'					=> false,
 
 	'dir_uploads' 			=> 'uploads/',
 	'dir_cache'				=> 'cache/',
@@ -93,5 +93,11 @@ $ROOFL_Config = Array(
 	)
 );
 
+$expected_pwd = realpath($ROOFL_Config['file_root'].$ROOFL_Config['web_catalog'].$ROOFL_Config['web_formroot']);
+$actual_pwd = realpath(dirname(__FILE__).'/');
+
+if ($actual_pwd != $expected_pwd) {
+	throw new Exception("Please configure ROOFL in {$actual_pwd}/config.php");
+}
 
 ?>

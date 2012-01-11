@@ -66,7 +66,7 @@ class FI_Hidden extends FormItem {
 		if ($input !== NULL) {
 			$this->value = $input;
 		} else {
-			if ($_POST[$this->name()]) {
+			if (isset($_POST[$this->name()])) {
 				return trim($_POST[$this->name()]);
 			}
 			return trim($this->value);
