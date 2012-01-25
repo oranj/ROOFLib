@@ -89,4 +89,14 @@ class FI_TextArea extends FI_Text {
 
 		return $script.'<textarea '.(($this->wysiwyg && $this->wysiwygInputClass)?('class="'.$this->wysiwygInputClass.'" '):'').'id="'.$this->name().'_w" cols="40" rows="4" '.(($this->required() && ($this->required_attr || $this->form->required_attr))?'required="required" ':'') .'name="'.$this->name().'">'.htmlentities($this->value()).'</textarea>'.$this->printDescription();
 	}
+
+
+/**
+ * Adds the form info to the DatabaseForm object()
+ *
+ * @param DatabaseForm $dbForm The DatabaseForm to add fields to
+ */
+	public function addToDB(&$dbForm) {
+		$dbForm->addItem($dbForm->dbName($this->label), $this->value(), 'text');
+	}
 }

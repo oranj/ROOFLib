@@ -142,7 +142,7 @@ class FI_Select extends FormItem {
 			if (is_array($value)) {
 				$html .= "\t".'<optgroup label="'.htmlentities($key).'">'.$this->printGroup($value, $selected_value).'</optgroup>'."\n";
 			} else {
-				$html .= "\t".'<option '.(((string)$selected_value === (string)$value)?' selected="selected"':'').' value="'.$key.'">'.$value.'</option>'."\n";
+				$html .= "\t".'<option '.(((string)$selected_value === (string)$key)?' selected="selected"':'').' value="'.$key.'">'.$value.'</option>'."\n";
 			}
 		}
 		return $html;

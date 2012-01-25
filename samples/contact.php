@@ -42,7 +42,7 @@ if ($form->action() && $form->validate()) {
 	exit();
 } else if (! $form->action() ) {
 	$form->value(array(
-		'year'=>7
+		'message' => 'Sample Text Here'
 	));
 }
 
@@ -82,7 +82,7 @@ background-image: -moz-linear-gradient(
 	.fi_icon { float:left; padding:2px; }
 	.fi_close { float:right; padding:2px; }
 
-	.rf_form, .rf_note, .rf_welcome, .rf_success, .rf_error, .rf_warning { font-family:Arial, sans-serif; font-size:12px;}
+	.rfc_textarea textarea, .rf_form, .rf_note, .rf_welcome, .rf_success, .rf_error, .rf_warning { font-family:Arial, sans-serif; font-size:12px;}
 
 	h1, .sepLabel { border-bottom:1px solid #ccc; color:#17345C; font-family:Arial, sans-serif; }
 
